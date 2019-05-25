@@ -1,4 +1,5 @@
 const { BN, shouldFail, time } = require('openzeppelin-test-helpers');
+const { generateMnemonic, EthHdWallet } = require('eth-hd-wallet');
 
 const { buildCreate2Address } = require('../helpers/create2');
 const { signMessage } = require('../helpers/sign');
@@ -117,5 +118,20 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
     (await this.token.balanceOf(relayer)).should.be.bignumber.equal(new BN(31));
     (await this.token.balanceOf(otherAccount)).should.be.bignumber.equal(new BN(1));
     (await this.token.balanceOf(wallet.address)).should.be.bignumber.equal(new BN(18));
+  });
+
+  it('should create a wallet using BIP44', async function () {
+    const bip44Wallet = EthHdWallet.fromMnemonic(generateMnemonic());
+    bip44Wallet.generateAddresses(1);
+    web3.eth.accounts.wallet.add('0x' + bip44Wallet._children[0].wallet._privKey.toString('hex'));
+
+    const walletOwner = web3.utils.toChecksumAddress(bip44Wallet.getAddresses()[0]);
+    const saltFromBIP44 = web3.utils.sha3(bip44Wallet.getAddresses()[0]);
+    const walletAddress = await this.computeWalletAddress(saltFromBIP44, walletOwner);
+    await web3.eth.sendTransaction({ from: tokenOwner, to: walletAddress, value: 100 });
+    const wallet = await this.deployWallet(saltFromBIP44, walletAddress, 80, walletOwner);
+
+    (await web3.eth.getBalance(wallet.address)).should.be.equal('20');
+    (await wallet.owner()).should.be.equal(walletOwner);
   });
 });

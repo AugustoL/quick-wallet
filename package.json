@@ -52,6 +52,7 @@
     "truffle": "^5.0.18"
   },
   "dependencies": {
+    "eth-hd-wallet": "^0.4.0",
     "openzeppelin-solidity": "^2.2.0",
     "solidity-bytes-utils": "0.0.7"
   }
