@@ -1,0 +1,58 @@
+{
+  "name": "smart-wallet",
+  "version": "0.0.1",
+  "description": "",
+  "files": [
+    "build",
+    "contracts",
+    "!contracts/mocks",
+    "!contracts/examples",
+    "test/behaviors"
+  ],
+  "scripts": {
+    "compile": "scripts/compile.sh",
+    "console": "truffle console",
+    "lint": "npm run lint:js && npm run lint:sol",
+    "lint:fix": "npm run lint:js:fix",
+    "lint:js": "eslint .",
+    "lint:js:fix": "eslint . --fix",
+    "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "test": "scripts/test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/augustol/smart-wallet.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts"
+  ],
+  "author": "Augusto Lemble <me@augustol.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/augustol/smart-wallet/issues"
+  },
+  "homepage": "https://github.com/augustol/smart-wallet",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-mocha-no-only": "^1.1.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "ethereumjs-util": "^6.0.0",
+    "ganache-cli": "^6.4.1",
+    "openzeppelin-test-helpers": "^0.3.2",
+    "solhint": "^1.5.0",
+    "truffle": "^5.0.18"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "^2.2.0",
+    "solidity-bytes-utils": "0.0.7"
+  }
+}
