@@ -1,5 +1,5 @@
 {
-  "name": "smart-wallet",
+  "name": "quick-wallet",
   "version": "0.0.1",
   "description": "",
   "files": [
@@ -21,20 +21,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/augustol/smart-wallet.git"
+    "url": "https://github.com/augustol/quick-wallet.git"
   },
   "keywords": [
     "solidity",
     "ethereum",
-    "smart",
-    "contracts"
+    "smart-contracts",
+    "wallet"
   ],
   "author": "Augusto Lemble <me@augustol.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/augustol/smart-wallet/issues"
+    "url": "https://github.com/augustol/quick-wallet/issues"
   },
-  "homepage": "https://github.com/augustol/smart-wallet",
+  "homepage": "https://github.com/augustol/quick-wallet",
   "devDependencies": {
     "chai": "^4.2.0",
     "coveralls": "^3.0.1",
