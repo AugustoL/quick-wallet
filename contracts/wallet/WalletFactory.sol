@@ -27,14 +27,18 @@ contract WalletFactory {
      * @param feeValue The amount to be payed as fee
      * @param beforeTime timetstamp of the time where this tx cant be executed
      * once it passed
-     * @param constructorData The ABI encoded data parameters for the costructor
+     * @param walletOwner The owner of the wallet to deploy
      * @param feeSignature The signature of the fee payment
      */
     function deploy(
         bytes32 salt, address feeToken, uint256 feeValue, uint256 beforeTime,
-        bytes memory constructorData, bytes memory feeSignature
+        address walletOwner, bytes memory feeSignature
     ) public {
-        Wallet wallet = Wallet(_deploy(salt, constructorData));
+        require(beforeTime > block.timestamp, "Invalid beforeTime value");
+        require(feeToken != address(0), "Invalid fee token");
+        require(walletOwner != address(0), "Invalid wallet owner");
+
+        Wallet wallet = Wallet(_deploy(salt, abi.encode(walletOwner)));
         bytes memory feePaymentData = abi.encodeWithSelector(
             bytes4(keccak256("transfer(address,uint256)")), msg.sender, feeValue
         );

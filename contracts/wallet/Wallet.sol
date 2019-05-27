@@ -7,8 +7,8 @@ contract Wallet is Ownable {
 
     using ECDSA for bytes32;
 
-    // Used to prevent execution of already executed txs during a timeframe
-    mapping(bytes32 => uint256) public pastTxs;
+    // Used to prevent execution of already executed txs
+    uint256 public txCount;
 
     /**
      * @dev Constructor
@@ -33,12 +33,11 @@ contract Wallet is Ownable {
         uint256 feeValue, uint256 beforeTime, bytes memory txSignature
     ) public payable {
         require(beforeTime > block.timestamp, "Invalid beforeTime value");
+        require(feeToken != address(0), "Invalid fee token");
 
-        bytes32 txHash = keccak256(txSignature);
-        require(pastTxs[txHash] == 0, "TX replay rejected");
-
-        address _signer = keccak256(abi.encodePacked(to, data, feeToken, feeValue, beforeTime))
-            .toEthSignedMessageHash().recover(txSignature);
+        address _signer = keccak256(abi.encodePacked(
+            address(this), to, data, feeToken, feeValue, txCount, beforeTime
+        )).toEthSignedMessageHash().recover(txSignature);
         require(owner() == _signer, "Signer is not wallet owner");
 
         bytes memory feePaymentData = abi.encodeWithSelector(
@@ -47,7 +46,7 @@ contract Wallet is Ownable {
 
         _call(to, data);
         _call(feeToken, feePaymentData);
-        pastTxs[txHash] = now;
+        txCount ++;
     }
 
     /**
@@ -63,15 +62,13 @@ contract Wallet is Ownable {
     ) public payable {
         require(beforeTime > block.timestamp, "Invalid beforeTime value");
 
-        bytes32 txHash = keccak256(txSignature);
-        require(pastTxs[txHash] == 0, "TX replay rejected");
-
-        address _signer = keccak256(abi.encodePacked(to, data, beforeTime))
-            .toEthSignedMessageHash().recover(txSignature);
+        address _signer = keccak256(abi.encodePacked(
+            address(this), to, data, txCount, beforeTime
+        )).toEthSignedMessageHash().recover(txSignature);
         require(owner() == _signer, "Signer is not wallet owner");
 
         _call(to, data);
-        pastTxs[txHash] = now;
+        txCount ++;
     }
 
     /**
