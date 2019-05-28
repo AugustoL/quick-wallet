@@ -14,12 +14,12 @@
     "console": "truffle console",
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix",
-    "lint:js": "eslint .",
-    "lint:js:fix": "eslint . --fix",
+    "lint:js": "eslint test lib/src",
+    "lint:js:fix": "npm run lint -- --fix",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "scripts/test.sh",
-    "build": "babel --ignore test --out-dir dist src",
-    "test:lib": "npm run build && npm test"
+    "build": "babel --ignore test --out-dir lib/dist lib/src",
+    "test:lib": "npm run compile && npm run build && npm test"
   },
   "repository": {
     "type": "git",
