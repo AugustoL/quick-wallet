@@ -29,7 +29,7 @@ contract Wallet is Ownable {
      * once it passed
      */
     function call(
-        address to, bytes memory data, address feeToken,
+        address to, bytes memory data, address feeToken, address feeTo,
         uint256 feeValue, uint256 beforeTime, bytes memory txSignature
     ) public payable {
         require(beforeTime > block.timestamp, "Invalid beforeTime value");
@@ -41,34 +41,12 @@ contract Wallet is Ownable {
         require(owner() == _signer, "Signer is not wallet owner");
 
         bytes memory feePaymentData = abi.encodeWithSelector(
-            bytes4(keccak256("transfer(address,uint256)")), msg.sender, feeValue
+            bytes4(keccak256("transfer(address,uint256)")), feeTo, feeValue
         );
 
         _call(to, data);
         _call(feeToken, feePaymentData);
-        txCount ++;
-    }
-
-    /**
-     * @dev Call a external contract
-     * @param to The address of the contract to call
-     * @param data ABI-encoded contract call to call `_to` address.
-     * @param txSignature The signature of the wallet owner
-     * @param beforeTime timetstamp of the time where this tx cant be executed
-     * once it passed
-     */
-    function call(
-        address to, bytes memory data, uint256 beforeTime, bytes memory txSignature
-    ) public payable {
-        require(beforeTime > block.timestamp, "Invalid beforeTime value");
-
-        address _signer = keccak256(abi.encodePacked(
-            address(this), to, data, txCount, beforeTime
-        )).toEthSignedMessageHash().recover(txSignature);
-        require(owner() == _signer, "Signer is not wallet owner");
-
-        _call(to, data);
-        txCount ++;
+        txCount++;
     }
 
     /**

@@ -21,28 +21,27 @@ contract WalletFactory {
     }
 
     /**
-     * @dev Deploy a Wallet contract and pay a fee
+     * @dev Deploy a Wallet contract, execute a call and pay a fee
      * @param salt The hex salt used for the wallet creation
+     * @param to The address of the contract to call
+     * @param data ABI-encoded contract call to call `_to` address.
      * @param feeToken The token used for the fee, use this wallet address for ETH
      * @param feeValue The amount to be payed as fee
      * @param beforeTime timetstamp of the time where this tx cant be executed
      * once it passed
      * @param walletOwner The owner of the wallet to deploy
-     * @param feeSignature The signature of the fee payment
+     * @param txSignature The signature of the tx and fee payment
      */
     function deploy(
-        bytes32 salt, address feeToken, uint256 feeValue, uint256 beforeTime,
-        address walletOwner, bytes memory feeSignature
+        bytes32 salt, address to, bytes memory data, address feeToken, address feeTo,
+        uint256 feeValue, uint256 beforeTime, address walletOwner,
+        bytes memory txSignature
     ) public {
         require(beforeTime > block.timestamp, "Invalid beforeTime value");
-        require(feeToken != address(0), "Invalid fee token");
         require(walletOwner != address(0), "Invalid wallet owner");
 
         Wallet wallet = Wallet(_deploy(salt, abi.encode(walletOwner)));
-        bytes memory feePaymentData = abi.encodeWithSelector(
-            bytes4(keccak256("transfer(address,uint256)")), msg.sender, feeValue
-        );
-        wallet.call(feeToken, feePaymentData, beforeTime, feeSignature);
+        wallet.call(to, data, feeToken, feeTo, feeValue, beforeTime, txSignature);
     }
 
     /**
