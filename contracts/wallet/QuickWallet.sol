@@ -1,21 +1,23 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract Wallet is Ownable {
+contract QuickWallet {
 
     using ECDSA for bytes32;
 
     // Used to prevent execution of already executed txs
     uint256 public txCount;
 
+    // QuickWallet owner address
+    address public _owner;
+
     /**
      * @dev Constructor
      * @param owner The address of the wallet owner
      */
     constructor(address owner) public {
-        _transferOwnership(owner);
+        _owner = owner;
     }
 
     /**
@@ -61,6 +63,13 @@ contract Wallet is Ownable {
     function transfer(address payable receiver, uint256 value) public {
         require(msg.sender == address(this));
         receiver.transfer(value);
+    }
+
+    /**
+     * @dev Get QuickWallet owner address
+     */
+    function owner() public view returns (address) {
+      return _owner;
     }
 
     /**
