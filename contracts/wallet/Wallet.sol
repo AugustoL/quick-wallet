@@ -22,11 +22,12 @@ contract Wallet is Ownable {
      * @dev Call a external contract and pay a fee for the call
      * @param to The address of the contract to call
      * @param data ABI-encoded contract call to call `_to` address.
-     * @param txSignature The signature of the wallet owner
      * @param feeToken The token used for the fee, use this wallet address for ETH
+     * @param feeTo The receiver of the fee payment
      * @param feeValue The amount to be payed as fee
      * @param beforeTime timetstamp of the time where this tx cant be executed
      * once it passed
+     * @param txSignature The signature of the wallet owner
      */
     function call(
         address to, bytes memory data, address feeToken, address feeTo,
@@ -40,12 +41,15 @@ contract Wallet is Ownable {
         )).toEthSignedMessageHash().recover(txSignature);
         require(owner() == _signer, "Signer is not wallet owner");
 
-        bytes memory feePaymentData = abi.encodeWithSelector(
-            bytes4(keccak256("transfer(address,uint256)")), feeTo, feeValue
-        );
-
         _call(to, data);
-        _call(feeToken, feePaymentData);
+
+        if (feeValue > 0) {
+          bytes memory feePaymentData = abi.encodeWithSelector(
+              bytes4(keccak256("transfer(address,uint256)")), feeTo, feeValue
+          );
+          _call(feeToken, feePaymentData);
+        }
+        
         txCount++;
     }
 

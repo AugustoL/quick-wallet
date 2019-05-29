@@ -26,6 +26,7 @@ contract WalletFactory {
      * @param to The address of the contract to call
      * @param data ABI-encoded contract call to call `_to` address.
      * @param feeToken The token used for the fee, use this wallet address for ETH
+     * @param feeTo The reciever of the fee payment
      * @param feeValue The amount to be payed as fee
      * @param beforeTime timetstamp of the time where this tx cant be executed
      * once it passed
