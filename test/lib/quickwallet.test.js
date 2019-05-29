@@ -37,8 +37,8 @@ contract('QuickWallet Lib', function ([_, tokenOwner, walletOwner, relayer, othe
         newWallet.address, newWallet.address, firstTxData, newWallet.address, 1, 0, beforeTime
       )
     );
-    await this.factory.deploy(
-      newWallet.salt, newWallet.address, firstTxData, newWallet.address,
+    await this.factory.deployWallet(
+      newWallet.address, firstTxData, newWallet.address,
       relayer, 1, beforeTime, newWallet.owner, firstTxDataSigned, { from: relayer }
     );
 

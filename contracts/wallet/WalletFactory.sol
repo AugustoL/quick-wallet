@@ -22,36 +22,25 @@ contract WalletFactory {
 
     /**
      * @dev Deploy a Wallet contract, execute a call and pay a fee
-     * @param salt The hex salt used for the wallet creation
-     * @param to The address of the contract to call
+     * @param receiver The address of the contract to call
      * @param data ABI-encoded contract call to call `_to` address.
      * @param feeToken The token used for the fee, use this wallet address for ETH
-     * @param feeTo The reciever of the fee payment
+     * @param feeReceiver The reciever of the fee payment
      * @param feeValue The amount to be payed as fee
      * @param beforeTime timetstamp of the time where this tx cant be executed
      * once it passed
      * @param walletOwner The owner of the wallet to deploy
      * @param txSignature The signature of the tx and fee payment
      */
-    function deploy(
-        bytes32 salt, address to, bytes memory data, address feeToken, address feeTo,
-        uint256 feeValue, uint256 beforeTime, address walletOwner,
-        bytes memory txSignature
+    function deployWallet(
+        address receiver, bytes memory data, address feeToken, address feeReceiver,
+        uint256 feeValue, uint256 beforeTime, address walletOwner, bytes memory txSignature
     ) public {
         require(beforeTime > block.timestamp, "Invalid beforeTime value");
         require(walletOwner != address(0), "Invalid wallet owner");
 
-        Wallet wallet = Wallet(_deploy(salt, abi.encode(walletOwner)));
-        wallet.call(to, data, feeToken, feeTo, feeValue, beforeTime, txSignature);
-    }
-
-    /**
-     * @dev Deploy a Wallet contract
-     * @param salt The hex salt used for the wallet creation
-     * @param constructorData The ABI encoded data parameters for the costructor
-     */
-    function deploy(bytes32 salt, bytes memory constructorData) public {
-        deploy(salt, constructorData);
+        Wallet wallet = Wallet(_deploy(keccak256(abi.encodePacked(walletOwner)), abi.encode(walletOwner)));
+        wallet.call(receiver, data, feeToken, feeReceiver, feeValue, beforeTime, txSignature);
     }
 
     /**
