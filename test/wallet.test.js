@@ -1,20 +1,20 @@
 const { BN, shouldFail, time, balance } = require('openzeppelin-test-helpers');
 
-const { buildCreate2Address } = require('../helpers/create2');
-const { signMessage } = require('../helpers/sign');
+const { buildCreate2Address } = require('./helpers/create2');
+const { signMessage } = require('./helpers/sign');
 
 const Create2 = artifacts.require('Create2');
-const WalletFactory = artifacts.require('WalletFactory');
-const Wallet = artifacts.require('Wallet');
+const QuickWalletFactory = artifacts.require('QuickWalletFactory');
+const QuickWallet = artifacts.require('QuickWallet');
 const ERC20Mock = artifacts.require('ERC20Mock');
 
-contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]) {
-  const walletBytecode = Wallet.bytecode;
+contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]) {
+  const walletBytecode = QuickWallet.bytecode;
 
   beforeEach(async function () {
     const create2Lib = await Create2.new();
-    await WalletFactory.link('Create2', create2Lib.address);
-    this.factory = await WalletFactory.new(walletBytecode);
+    await QuickWalletFactory.link('Create2', create2Lib.address);
+    this.factory = await QuickWalletFactory.new(walletBytecode);
     this.token = await ERC20Mock.new(tokenOwner, 100);
 
     this.computeWalletAddress = async function (_walletOwner) {
@@ -23,7 +23,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
       );
     };
 
-    this.deployWallet = async function (
+    this.deployQuickWallet = async function (
       _firstTxTo, _firstTxData, _tokenFee, _feeValue, _walletOwner, _timeLimit = 60
     ) {
       const constructorData = web3.eth.abi.encodeParameters(['address'], [_walletOwner]);
@@ -34,15 +34,15 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
           walletAddress, _firstTxTo, _firstTxData, _tokenFee, _feeValue, 0, beforeTime
         )
       );
-      await this.factory.deployWallet(
+      await this.factory.deployQuickWallet(
         _firstTxTo, _firstTxData, _tokenFee, relayer, _feeValue, beforeTime,
         _walletOwner, feePaymentDataSigned, { from: relayer } );
-      return Wallet.at(walletAddress);
+      return QuickWallet.at(walletAddress);
     };
 
   });
 
-  it('should deploy a Wallet contract with correct owner and pay fee in tokens', async function () {
+  it('should deploy a QuickWallet contract with correct owner and pay fee in tokens', async function () {
     const walletAddress = await this.computeWalletAddress(walletOwner);
     await this.token.transfer(walletAddress, 50, { from: tokenOwner });
     const sendTokensData = web3.eth.abi.encodeFunctionCall({
@@ -50,7 +50,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
-    const wallet = await this.deployWallet(
+    const wallet = await this.deployQuickWallet(
       this.token.address, sendTokensData, this.token.address, 1, walletOwner
     );
 
@@ -61,7 +61,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
     (await wallet.owner()).should.be.equal(walletOwner);
   });
 
-  it('should deploy a Wallet contract with correct owner and pay fee in eth', async function () {
+  it('should deploy a QuickWallet contract with correct owner and pay fee in eth', async function () {
     const walletAddress = await this.computeWalletAddress(walletOwner);
     await web3.eth.sendTransaction({ from: tokenOwner, to: walletAddress, value: 100 });
     const sendTokensData = web3.eth.abi.encodeFunctionCall({
@@ -72,7 +72,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
 
     const balanceTrackerOtherAccount = await balance.tracker(otherAccount);
     const balanceTrackerWallet = await balance.tracker(walletAddress);
-    await this.deployWallet(walletAddress, sendTokensData, walletAddress, 1, walletOwner);
+    await this.deployQuickWallet(walletAddress, sendTokensData, walletAddress, 1, walletOwner);
 
     (await balanceTrackerOtherAccount.delta()).should.be.bignumber.equal(new BN(10));
     (await balanceTrackerWallet.get()).should.be.bignumber.equal(new BN(89));
@@ -86,7 +86,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
-    const wallet = await this.deployWallet(
+    const wallet = await this.deployQuickWallet(
       this.token.address, sendTokensData, this.token.address, 1, walletOwner
     );
 
@@ -120,7 +120,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
-    const wallet = await this.deployWallet(
+    const wallet = await this.deployQuickWallet(
       this.token.address, sendTokensData, this.token.address, 1, walletOwner
     );
 
@@ -161,7 +161,7 @@ contract('Wallet', function ([_, tokenOwner, walletOwner, relayer, otherAccount]
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
-    const wallet = await this.deployWallet(
+    const wallet = await this.deployQuickWallet(
       this.token.address, sendTokensData, this.token.address, 1, walletOwner
     );
 
