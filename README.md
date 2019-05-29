@@ -16,3 +16,20 @@ The owner can create multiple signatures for the same transaction with different
 ## An step closer towards anonymity
 There is no cost in generating a new address in your wallet, and its completely unrelated to the rest of your addresses. The only missing piece in the puzzle is how this new address is funded? The wallet is create the first time this address is used to sent a transaction, but it has to have ETH or tokens first. To fully protect the identity the wallet owner needs to be careful from where the funding transaction come from.
 A potential solution to this is to use an ethereum mixer contract to fund new wallets.
+
+# Wallet Structure
+
+Master Private Key
+  -> Wallet 1
+    -> Keys
+      -> Public Key
+      -> Private Key
+    -> Owner Address
+    -> QuickWallet Address
+  -> Wallet 2
+  -> Wallet 3
+  ...
+
+The quickwallet address is precomputed by using the hashed owner address as salt, there in no danger in sharing the salt, since the quickwallet address that you will used is generated using the bytecode of the Wallet contract, and this contract only allows execution signed by the owner private key. Like any other wallet you only have to key your private keys safe.
+
+Each QuickWallet generated has two addresses, the owner, a common ETH address and the QuickWallet address, that can be used to push transactions to the network, this transactions are executed by relayers and the fees can be payed in ERC20 tokens or ETH. There is also the transactions yourself and decide which address you want to use for the transaction execution and ETH fee payment.
