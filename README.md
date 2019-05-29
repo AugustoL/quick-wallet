@@ -32,4 +32,4 @@ Master Private Key
 
 The quickwallet address is precomputed by using the hashed owner address as salt, there in no danger in sharing the salt, since the quickwallet address that you will used is generated using the bytecode of the Wallet contract, and this contract only allows execution signed by the owner private key. Like any other wallet you only have to key your private keys safe.
 
-Each QuickWallet generated has two addresses, the owner, a common ETH address and the QuickWallet address, that can be used to push transactions to the network, this transactions are executed by relayers and the fees can be payed in ERC20 tokens or ETH. There is also the transactions yourself and decide which address you want to use for the transaction execution and ETH fee payment.
+Each QuickWallet generated has two addresses, the owner, a common ETH address and the QuickWallet address, that can be used to push transactions to the network, this transactions are executed by relayers and the fees can be payed in ERC20 tokens or ETH. You can also execute the transactions yourself and decide which address you want to use for the transaction execution and ETH fee payment.
