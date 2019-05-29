@@ -19,7 +19,7 @@
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "scripts/test.sh",
     "build": "babel --ignore test --out-dir lib/dist lib/src",
-    "test:lib": "npm run compile && npm run build && npm test"
+    "test:lib": "npm run compile && npm run build && npm test test/lib/*"
   },
   "repository": {
     "type": "git",
@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "eth-hd-wallet": "^0.4.0",
+    "ethereumjs-tx": "^1.3.7",
     "openzeppelin-solidity": "^2.2.0",
     "solidity-bytes-utils": "0.0.7",
     "web3": "^1.0.0-beta.55"
