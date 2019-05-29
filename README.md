@@ -20,15 +20,15 @@ A potential solution to this is to use an ethereum mixer contract to fund new wa
 # Wallet Structure
 
 Master Private Key
-  -> Wallet 1
-    -> Keys
-      -> Public Key
-      -> Private Key
-    -> Owner Address
-    -> QuickWallet Address
-  -> Wallet 2
-  -> Wallet 3
-  ...
+  - Wallet 1
+    - Keys
+      - Public Key
+      - Private Key
+    - Owner Address
+    - QuickWallet Address
+  - Wallet 2
+  - Wallet 3
+...
 
 The quickwallet address is precomputed by using the hashed owner address as salt, there in no danger in sharing the salt, since the quickwallet address that you will used is generated using the bytecode of the Wallet contract, and this contract only allows execution signed by the owner private key. Like any other wallet you only have to key your private keys safe.
 
