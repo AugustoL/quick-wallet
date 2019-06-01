@@ -1,33 +1,28 @@
 {
-  "name": "quick-wallet",
+  "name": "quick-wallet-js",
   "version": "0.0.1",
   "description": "",
   "files": [
-    "build",
-    "contracts",
-    "!contracts/mocks",
-    "!contracts/examples",
-    "test/behaviors"
+    "dist",
+    "src"
   ],
   "scripts": {
-    "compile": "scripts/compile.sh",
-    "console": "truffle console",
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix",
-    "lint:js": "eslint test lib/src",
+    "lint:js": "eslint test src",
     "lint:js:fix": "npm run lint -- --fix",
-    "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
-    "test": "scripts/test.sh"
+    "build": "babel --ignore test --out-dir dist src",
+    "test": "npm run build && scripts/test.sh"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/augustol/quick-wallet.git"
   },
   "keywords": [
-    "solidity",
     "ethereum",
-    "smart-contracts",
-    "wallet"
+    "javascript",
+    "wallet",
+    "BIP44"
   ],
   "author": "Augusto Lemble <me@augustol.com>",
   "license": "MIT",
@@ -36,8 +31,14 @@
   },
   "homepage": "https://github.com/augustol/quick-wallet",
   "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.1",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.13.0",
@@ -46,13 +47,20 @@
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
     "ethereumjs-util": "^6.0.0",
-    "ganache-cli": "^6.4.1",
-    "openzeppelin-test-helpers": "^0.3.2",
-    "solhint": "^1.5.0",
-    "truffle": "^5.0.18"
+    "ganache-cli": "^6.4.4-beta.0",
+    "jest": "^24.7.1",
+    "openzeppelin-test-helpers": "^0.3.2"
   },
   "dependencies": {
-    "openzeppelin-solidity": "^2.2.0",
-    "solidity-bytes-utils": "0.0.7"
+    "eth-hd-wallet": "^0.4.0",
+    "ethereumjs-tx": "^1.3.7",
+    "solidity-bytes-utils": "0.0.7",
+    "web3": "^1.0.0-beta.55"
+  },
+  "jest": {
+    "testRegex": "./test/.*.spec.js",
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }
