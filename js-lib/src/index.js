@@ -5,8 +5,10 @@ import Mnemonic from 'bitcore-mnemonic';
 import Web3 from 'web3';
 import {
   bytecode as walletBytecode, abi as walletABI,
-} from '../../build/contracts/QuickWallet.json';
-import { abi as walletFactoryABI } from '../../build/contracts/QuickWalletFactory.json';
+} from '../../smart-contracts/build/contracts/QuickWallet.json';
+import {
+  abi as walletFactoryABI
+} from '../../smart-contracts/build/contracts/QuickWalletFactory.json';
 
 // See https://github.com/ethereum/EIPs/issues/85
 const BIP44_PATH = 'm/44\'/60\'/0\'/0';

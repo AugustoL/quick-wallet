@@ -1,7 +1,7 @@
 import Web3 from 'web3';
-import QuickWalletFactory from '../../build/contracts/QuickWalletFactory.json';
-import QuickWallet from '../../build/contracts/QuickWallet.json';
-import ERC20Mock from '../../build/contracts/ERC20Mock.json';
+import QuickWalletFactory from '../../smart-contracts/build/contracts/QuickWalletFactory.json';
+import QuickWallet from '../../smart-contracts/build/contracts/QuickWallet.json';
+import ERC20Mock from '../../smart-contracts/build/contracts/ERC20Mock.json';
 
 export const web3 = new Web3('http://localhost:8545', undefined, { transactionConfirmationBlocks: 1 });
 export const zeroAddress = '0x0000000000000000000000000000000000000000';

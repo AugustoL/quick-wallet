@@ -15,9 +15,9 @@ var _bitcoreMnemonic = _interopRequireDefault(require("bitcore-mnemonic"));
 
 var _web = _interopRequireDefault(require("web3"));
 
-var _QuickWallet = require("../../build/contracts/QuickWallet.json");
+var _QuickWallet = require("../../smart-contracts/build/contracts/QuickWallet.json");
 
-var _QuickWalletFactory = require("../../build/contracts/QuickWalletFactory.json");
+var _QuickWalletFactory = require("../../smart-contracts/build/contracts/QuickWalletFactory.json");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
