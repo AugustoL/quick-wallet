@@ -1,10 +1,12 @@
 import { fromExtendedKey } from 'ethereumjs-wallet/hdkey';
 import EthSigUtil from 'eth-sig-util';
-import EthereumTx from 'ethereumjs-tx'
+import EthereumTx from 'ethereumjs-tx';
 import Mnemonic from 'bitcore-mnemonic';
 import Web3 from 'web3';
-import { bytecode as walletBytecode, abi as walletABI } from '../../build/contracts/QuickWallet.json';
-import { bytecode as walletFactoryBytecode, abi as walletFactoryABI } from '../../build/contracts/QuickWalletFactory.json';
+import {
+  bytecode as walletBytecode, abi as walletABI,
+} from '../../build/contracts/QuickWallet.json';
+import { abi as walletFactoryABI } from '../../build/contracts/QuickWalletFactory.json';
 
 // See https://github.com/ethereum/EIPs/issues/85
 const BIP44_PATH = 'm/44\'/60\'/0\'/0';
@@ -14,9 +16,8 @@ const BIP44_PATH = 'm/44\'/60\'/0\'/0';
  * @param  String text
  * @return String
  */const addHexPrefix = (text) => {
-  return (!text.slice(0,2) != '0x') ? '0x' + text : text;
+  return (!text.slice(0, 2) !== '0x') ? '0x' + text : text;
 };
-
 
 /**
  * Represents a QuickWallet instance.
@@ -115,7 +116,7 @@ export default class QuickWallet {
     return this._children.map(k => {
       return {
         address: k.address,
-        owner: k.owner
+        owner: k.owner,
       };
     });
   }
@@ -127,10 +128,9 @@ export default class QuickWallet {
    */
   async getQuickWallet (addr) {
     const wallet = this._children.find(({ address }) => addr === address);
-    if (!wallet)
-      throw("Invalid address")
+    if (!wallet) { throw new Error('Invalid quick wallet address'); }
 
-    wallet.deployed = (await this._web3.eth.getCode(wallet.address) != '0x');
+    wallet.deployed = (await this._web3.eth.getCode(wallet.address) !== '0x');
     wallet.balance = await this._web3.eth.getBalance(wallet.address);
     wallet.contract = new this._web3.eth.Contract(walletABI, wallet.address);
 
@@ -150,10 +150,10 @@ export default class QuickWallet {
    * Send transaction from owner address
    * @return Object
    */
-  async sendTransaction ({from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice}) {
+  async sendTransaction ({ from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    const txCount = wallet.deployed ? await walletContract.txCount(): 0;
+    const txCount = wallet.deployed ? await walletContract.txCount() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const signature = await this.sign(wallet.owner,
       this._web3.utils.soliditySha3(
@@ -163,13 +163,17 @@ export default class QuickWallet {
     let _to, _data;
 
     if (!wallet.deployed) {
-      _data = this._walletFactory.methods.deployQuickWallet(to, data, feeToken, feeTo, feeValue, beforeTime, wallet.owner, signature).encodeABI();
+      _data = this._walletFactory.methods.deployQuickWallet(
+        to, data, feeToken, feeTo, feeValue, beforeTime, wallet.owner, signature
+      ).encodeABI();
       _to = this._walletFactory.address;
     } else {
       _data = walletContract.methods.call(to, data, feeToken, feeTo, feeValue, beforeTime, signature).encodeABI();
       _to = wallet.address;
     }
-    const txSigned = await this.signETHTransaction({ from: wallet.owner, to: _to, data: _data, chainId: chainId, gasPrice: gasPrice });
+    const txSigned = await this.signETHTransaction(
+      { from: wallet.owner, to: _to, data: _data, chainId: chainId, gasPrice: gasPrice }
+    );
     return this._web3.eth.sendSignedTransaction(txSigned);
   }
 
@@ -178,11 +182,11 @@ export default class QuickWallet {
    * @return Object
    */
   async relayTransaction ({
-    from, quickTransaction, chainId, gasPrice, gasLimit
+    from, quickTransaction, chainId, gasPrice, gasLimit,
   }) {
     const walletContract = new this._web3.eth.Contract(walletABI, quickTransaction.from);
     let _to, _data;
-    if ((await this._web3.eth.getCode(quickTransaction.from)) == '0x') {
+    if ((await this._web3.eth.getCode(quickTransaction.from)) === '0x') {
       _data = this._walletFactory.methods.deployQuickWallet(
         quickTransaction.to,
         quickTransaction.data,
@@ -207,17 +211,19 @@ export default class QuickWallet {
       _to = quickTransaction.from;
     }
     const txSigned = await this.signETHTransaction({
-      from: from, to: _to, data: _data, gasPrice: gasPrice, gasLimit: gasLimit
+      from: from, to: _to, data: _data, gasPrice: gasPrice, gasLimit: gasLimit,
     });
-    return await this._web3.eth.sendSignedTransaction(txSigned);
+    return this._web3.eth.sendSignedTransaction(txSigned);
   }
 
   /**
    * Send transaction from owner address
    * @return Object
    */
-  async sendTransactionFromOwner ({from, to, data, gasLimit, chainId, gasPrice}) {
-    const txSigned = await this.signETHTransaction({ from: from, to: to, data: data, gasLimit: gasLimit, chainId: chainId, gasPrice: gasPrice });
+  async sendTransactionFromOwner ({ from, to, data, gasLimit, chainId, gasPrice }) {
+    const txSigned = await this.signETHTransaction(
+      { from: from, to: to, data: data, gasLimit: gasLimit, chainId: chainId, gasPrice: gasPrice }
+    );
     return this._web3.eth.sendSignedTransaction(txSigned);
   }
 
@@ -235,38 +241,34 @@ export default class QuickWallet {
    * @return String Raw transaction string.
    */
   async signETHTransaction ({ nonce, from, to, value, data, gasLimit, gasPrice, chainId }) {
-    const { wallet } = this._children.find(({ owner }) => from === owner) || {}
+    const { wallet } = this._children.find(({ owner }) => from === owner) || {};
 
     if (!wallet) {
-      throw new Error('Invalid from address')
+      throw new Error('Invalid from address');
     }
 
-    if (!nonce)
-      nonce = await this._web3.eth.getTransactionCount(from);
+    if (!nonce) { nonce = await this._web3.eth.getTransactionCount(from); }
 
-    if (!gasPrice)
-      gasPrice = await this._web3.eth.getGasPrice();
+    if (!gasPrice) { gasPrice = await this._web3.eth.getGasPrice(); }
 
-    if (!gasLimit)
-      gasLimit = await this._web3.eth.estimateGas({ to: to, data: data });
+    if (!gasLimit) { gasLimit = await this._web3.eth.estimateGas({ to: to, data: data }); }
 
     const tx = new EthereumTx({
-      nonce, to, value, data, gasLimit, gasPrice, chainId
-    })
+      nonce, to, value, data, gasLimit, gasPrice, chainId,
+    });
 
-    tx.sign(wallet.getPrivateKey())
-    return addHexPrefix(tx.serialize().toString('hex'))
+    tx.sign(wallet.getPrivateKey());
+    return addHexPrefix(tx.serialize().toString('hex'));
   }
 
   /**
    * Sign quick transaction from owner address
    * @return Object
    */
-  async signQuickTransaction ({from, to, data, feeToken, feeValue, timeLimit, txCount}) {
+  async signQuickTransaction ({ from, to, data, feeToken, feeValue, timeLimit, txCount }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    if (!txCount)
-      txCount = wallet.deployed ? await walletContract.txCount(): 0;
+    if (!txCount) { txCount = wallet.deployed ? await walletContract.txCount() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const signature = await this.sign(wallet.owner,
       this._web3.utils.soliditySha3(
@@ -282,7 +284,7 @@ export default class QuickWallet {
       feeValue: feeValue,
       beforeTime: beforeTime,
       txCount: txCount,
-      signature: signature
+      signature: signature,
     };
   }
 

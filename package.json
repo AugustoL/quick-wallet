@@ -14,7 +14,7 @@
     "console": "truffle console",
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix",
-    "lint:js": "eslint test lib/src",
+    "lint:js": "eslint test",
     "lint:js:fix": "npm run lint -- --fix",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "scripts/test.sh"

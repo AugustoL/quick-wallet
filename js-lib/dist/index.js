@@ -40,7 +40,7 @@ var BIP44_PATH = 'm/44\'/60\'/0\'/0';
  */
 
 var addHexPrefix = function addHexPrefix(text) {
-  return !text.slice(0, 2) != '0x' ? '0x' + text : text;
+  return !text.slice(0, 2) !== '0x' ? '0x' + text : text;
 };
 /**
  * Represents a QuickWallet instance.
@@ -203,7 +203,7 @@ function () {
                   break;
                 }
 
-                throw "Invalid address";
+                throw new Error('Invalid quick wallet address');
 
               case 3:
                 _context.next = 5;
@@ -211,7 +211,7 @@ function () {
 
               case 5:
                 _context.t0 = _context.sent;
-                wallet.deployed = _context.t0 != '0x';
+                wallet.deployed = _context.t0 !== '0x';
                 _context.next = 9;
                 return this._web3.eth.getBalance(wallet.address);
 
@@ -363,7 +363,7 @@ function () {
               case 4:
                 _context3.t0 = _context3.sent;
 
-                if (!(_context3.t0 == '0x')) {
+                if (!(_context3.t0 === '0x')) {
                   _context3.next = 10;
                   break;
                 }
@@ -389,13 +389,9 @@ function () {
 
               case 14:
                 txSigned = _context3.sent;
-                _context3.next = 17;
-                return this._web3.eth.sendSignedTransaction(txSigned);
+                return _context3.abrupt("return", this._web3.eth.sendSignedTransaction(txSigned));
 
-              case 17:
-                return _context3.abrupt("return", _context3.sent);
-
-              case 18:
+              case 16:
               case "end":
                 return _context3.stop();
             }
