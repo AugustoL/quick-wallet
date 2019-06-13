@@ -22,25 +22,23 @@ contract QuickWalletFactory {
 
     /**
      * @dev Deploy a QuickWallet contract, execute a call and pay a fee
-     * @param receiver The address of the contract to call
-     * @param data ABI-encoded contract call to call `_to` address.
-     * @param feeToken The token used for the fee, use this wallet address for ETH
-     * @param feeReceiver The reciever of the fee payment
-     * @param feeValue The amount to be payed as fee
-     * @param beforeTime timetstamp of the time where this tx cant be executed
-     * once it passed
      * @param walletOwner The owner of the wallet to deploy
+     * @param txData encoded data that contains:
+       * receiver The address of the contract to call
+       * data ABI-encoded contract call to call `_to` address.
+       * feeToken The token used for the fee, use this wallet address for ETH
+       * feeValue The amount to be payed as fee
+       * beforeTime timetstamp of the time where this tx cant be executed
+       * once it passed
      * @param txSignature The signature of the tx and fee payment
+     * @param feeReceiver The receiver of the fee payment
      */
     function deployQuickWallet(
-        address receiver, bytes memory data, address feeToken, address feeReceiver,
-        uint256 feeValue, uint256 beforeTime, address walletOwner, bytes memory txSignature
+        address walletOwner, bytes memory txData, bytes memory txSignature, address feeReceiver
     ) public {
-        require(beforeTime > block.timestamp, "Invalid beforeTime value");
-        require(walletOwner != address(0), "Invalid wallet owner");
-
+        require(walletOwner != address(0), "QuickWalletFactory: Invalid wallet owner");
         QuickWallet wallet = QuickWallet(_deploy(keccak256(abi.encodePacked(walletOwner)), abi.encode(walletOwner)));
-        wallet.call(receiver, data, feeToken, feeReceiver, feeValue, beforeTime, txSignature);
+        wallet.call(txData, txSignature, feeReceiver);
     }
 
     /**
