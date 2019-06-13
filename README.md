@@ -14,7 +14,7 @@ Quick wallets uses BIP44 to create smart contract wallets from contract factory.
 The owner can create multiple signatures for the same transaction with different fees. If Bob wants to send 100 tokens to Alice he can push to the relayer three signatures, one to pay 3 tokens if the transfer is executed in 10 seconds, 2 tokens if its executed in 20 seconds and 1 token if its executed after that. This transactions cant be executed twice since the wallet logic protects it against double spend.
 
 ## An step closer towards anonymity
-There is no cost in generating a new address in your wallet, and its completely unrelated to the rest of your addresses. The only missing piece in the puzzle is how this new address is funded? The wallet is created qhen is used to send teh first transaction, but it has to have ETH or tokens first. To fully protect the identity the wallet owner needs to be careful from where the funding transaction comes from.
+There is no cost in generating a new address in your wallet, and its completely unrelated to the rest of your addresses. The only missing piece in the puzzle is how this new address is funded? The wallet is created when it is used to send the first transaction, but it has to have ETH or tokens first. To fully protect the identity the wallet owner needs to be careful from where the funding transaction comes from.
 A potential solution to this is to use an ethereum mixer contract to fund new wallets.
 
 # Wallet Structure
