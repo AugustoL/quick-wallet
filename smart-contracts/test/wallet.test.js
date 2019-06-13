@@ -26,17 +26,14 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
     this.deployQuickWallet = async function (
       _firstTxTo, _firstTxData, _tokenFee, _feeValue, _walletOwner, _timeLimit = 60
     ) {
-      const constructorData = web3.eth.abi.encodeParameters(['address'], [_walletOwner]);
       const beforeTime = (await time.latest()) + _timeLimit;
       const walletAddress = await this.computeWalletAddress(_walletOwner);
-      const feePaymentDataSigned = await signMessage(_walletOwner,
-        web3.utils.soliditySha3(
-          walletAddress, _firstTxTo, _firstTxData, _tokenFee, _feeValue, 0, beforeTime
-        )
+      const txData = web3.eth.abi.encodeParameters(
+        ['address', 'bytes', 'address', 'uint256', 'uint256'],
+        [_firstTxTo, _firstTxData, _tokenFee, _feeValue, beforeTime]
       );
-      await this.factory.deployQuickWallet(
-        _firstTxTo, _firstTxData, _tokenFee, relayer, _feeValue, beforeTime,
-        _walletOwner, feePaymentDataSigned, { from: relayer } );
+      const txSigned = await signMessage(_walletOwner, web3.utils.soliditySha3(walletAddress, txData, 0));
+      await this.factory.deployQuickWallet(_walletOwner, txData, txSigned, relayer, { from: relayer });
       return QuickWallet.at(walletAddress);
     };
 
@@ -96,14 +93,15 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
     const beforeTime = (await time.latest()) + 60;
-    const sendMoreTokensDataSig = await signMessage(walletOwner,
-      web3.utils.soliditySha3(
-        walletAddress, this.token.address, sendMoreTokensData, this.token.address, 1, 1, beforeTime
-      )
+    const sendMoreTokensQuickTxData = web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [this.token.address, sendTokensData, this.token.address, 1, beforeTime]
+    );
+    const sendMoreTokensQuickTxDataSig = await signMessage(walletOwner,
+      web3.utils.soliditySha3(walletAddress, sendMoreTokensQuickTxData, 1)
     );
     await wallet.call(
-      this.token.address, sendTokensData, this.token.address, relayer, 1,
-      beforeTime, sendMoreTokensDataSig, { from: relayer }
+      sendMoreTokensQuickTxData, sendMoreTokensQuickTxDataSig, relayer, { from: relayer }
     );
 
     (await this.token.balanceOf(tokenOwner)).should.be.bignumber.equal(new BN(50));
@@ -130,21 +128,17 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
     const beforeTime = (await time.latest()) + 10;
-    const sendMoreTokensDataSig = await signMessage(walletOwner,
-      web3.utils.soliditySha3(
-        walletAddress, this.token.address, sendMoreTokensData, this.token.address, 1, 1, beforeTime
-      )
+    const sendMoreTokensQuickTxData = web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [this.token.address, sendTokensData, this.token.address, 1, beforeTime]
     );
-    await wallet.call(
-      this.token.address, sendMoreTokensData, this.token.address, relayer, 1,
-      beforeTime, sendMoreTokensDataSig, { from: relayer }
+    const sendMoreTokensQuickTxDataSig = await signMessage(walletOwner,
+      web3.utils.soliditySha3(walletAddress, sendMoreTokensQuickTxData, 1)
     );
+    await wallet.call(sendMoreTokensQuickTxData, sendMoreTokensQuickTxDataSig, relayer, { from: relayer });
 
     await shouldFail.reverting(
-      wallet.call(
-        this.token.address, sendMoreTokensData, this.token.address, relayer, 1,
-        beforeTime, sendMoreTokensDataSig, { from: relayer }
-      )
+      wallet.call(sendMoreTokensQuickTxData, sendMoreTokensQuickTxDataSig, relayer, { from: relayer })
     );
 
     (await this.token.balanceOf(tokenOwner)).should.be.bignumber.equal(new BN(50));
@@ -165,39 +159,31 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
       this.token.address, sendTokensData, this.token.address, 1, walletOwner
     );
 
-    const sendTokensDataHighfee = web3.eth.abi.encodeFunctionCall({
-      name: 'transfer',
-      type: 'frunction',
-      inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
-    }, [otherAccount, 10]);
     const beforeTimeInHighFee = (await time.latest()) + 10;
-    const sendTokensDataHighFeeSig = await signMessage(walletOwner,
-      web3.utils.soliditySha3(
-        walletAddress, this.token.address, sendTokensDataHighfee,
-        this.token.address, 3, 1, beforeTimeInHighFee
-      )
+    const sendTokensQuickTxDataHighfee = web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [this.token.address, sendTokensData, this.token.address, 3, beforeTimeInHighFee]
     );
-    const sendTokensDataLowFee = web3.eth.abi.encodeFunctionCall({
-      name: 'transfer',
-      type: 'frunction',
-      inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
-    }, [otherAccount, 10]);
+    const sendTokensQuickTxDataHighfeeSig = await signMessage(walletOwner,
+      web3.utils.soliditySha3(walletAddress, sendTokensQuickTxDataHighfee, 1)
+    );
+
     const beforeTimeInLowFee = (await time.latest()) + 30;
-    const sendTokensDataLowFeeSig = await signMessage(walletOwner,
-      web3.utils.soliditySha3(
-        walletAddress, this.token.address, sendTokensDataLowFee,
-        this.token.address, 1, 1, beforeTimeInLowFee
-      )
+    const sendTokensQuickTxDataLowFee = web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [this.token.address, sendTokensData, this.token.address, 1, beforeTimeInLowFee]
     );
+    const sendTokensQuickTxDataLowfeeSig = await signMessage(walletOwner,
+      web3.utils.soliditySha3(walletAddress, sendTokensQuickTxDataLowFee, 1)
+    );
+
     await wallet.call(
-      this.token.address, sendTokensDataHighfee, this.token.address, relayer, 3,
-      beforeTimeInHighFee, sendTokensDataHighFeeSig, { from: relayer }
+      sendTokensQuickTxDataHighfee, sendTokensQuickTxDataHighfeeSig, relayer, { from: relayer }
     );
 
     await shouldFail.reverting(
       wallet.call(
-        this.token.address, sendTokensDataLowFee, this.token.address, relayer, 1,
-        beforeTimeInLowFee, sendTokensDataLowFeeSig, { from: relayer }
+        sendTokensQuickTxDataLowFee, sendTokensQuickTxDataLowfeeSig, relayer, { from: relayer }
       )
     );
 
