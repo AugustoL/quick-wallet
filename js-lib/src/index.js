@@ -211,6 +211,32 @@ export default class QuickWallet {
   }
 
   /**
+   * Relay a signed quickTransaction from owner address
+   * @return Object
+   */
+  async estimateRelayCost ({ from, quickTransaction }) {
+    const walletContract = new this._web3.eth.Contract(walletABI, quickTransaction.from);
+    let to, data;
+    if ((await this._web3.eth.getCode(quickTransaction.from)) === '0x') {
+      data = this._walletFactory.methods.deployQuickWallet(
+        quickTransaction.owner,
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
+      ).encodeABI();
+      to = this._walletFactory.address;
+    } else {
+      data = walletContract.methods.call(
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
+      ).encodeABI();
+      to = quickTransaction.from;
+    }
+    return this._web3.eth.estimateGas({from: from, to: to, data: data});
+  }
+
+  /**
    * Send transaction from owner address
    * @return Object
    */
