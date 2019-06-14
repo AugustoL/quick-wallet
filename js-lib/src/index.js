@@ -157,20 +157,20 @@ export default class QuickWallet {
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     const txCount = wallet.deployed ? await walletContract.txCount() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
-    const signature = await this.sign(wallet.owner,
-      this._web3.utils.soliditySha3(
-        wallet.address, to, data, feeToken, feeValue, txCount, beforeTime
-      )
+    const txData = this._web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [to, data, feeToken, feeValue, beforeTime]
     );
+    const txSig = await this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
     let _to, _data;
 
     if (!wallet.deployed) {
       _data = this._walletFactory.methods.deployQuickWallet(
-        to, data, feeToken, feeTo, feeValue, beforeTime, wallet.owner, signature
+        wallet.owner, txData, txSig, wallet.owner
       ).encodeABI();
       _to = this._walletFactory.address;
     } else {
-      _data = walletContract.methods.call(to, data, feeToken, feeTo, feeValue, beforeTime, signature).encodeABI();
+      _data = walletContract.methods.call(txData, txSig, wallet.owner).encodeABI();
       _to = wallet.address;
     }
     const txSigned = await this.signETHTransaction(
@@ -187,33 +187,25 @@ export default class QuickWallet {
     from, quickTransaction, chainId, gasPrice, gasLimit,
   }) {
     const walletContract = new this._web3.eth.Contract(walletABI, quickTransaction.from);
-    let _to, _data;
+    let to, data;
     if ((await this._web3.eth.getCode(quickTransaction.from)) === '0x') {
-      _data = this._walletFactory.methods.deployQuickWallet(
-        quickTransaction.to,
-        quickTransaction.data,
-        quickTransaction.feeToken,
-        from,
-        quickTransaction.feeValue,
-        quickTransaction.beforeTime,
+      data = this._walletFactory.methods.deployQuickWallet(
         quickTransaction.owner,
-        quickTransaction.signature
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
       ).encodeABI();
-      _to = this._walletFactory.address;
+      to = this._walletFactory.address;
     } else {
-      _data = walletContract.methods.call(
-        quickTransaction.to,
-        quickTransaction.data,
-        quickTransaction.feeToken,
-        from,
-        quickTransaction.feeValue,
-        quickTransaction.beforeTime,
-        quickTransaction.signature
+      data = walletContract.methods.call(
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
       ).encodeABI();
-      _to = quickTransaction.from;
+      to = quickTransaction.from;
     }
     const txSigned = await this.signETHTransaction({
-      from: from, to: _to, data: _data, gasPrice: gasPrice, gasLimit: gasLimit,
+      from: from, to: to, data: data, gasPrice: gasPrice, gasLimit: gasLimit,
     });
     return this._web3.eth.sendSignedTransaction(txSigned);
   }
@@ -272,21 +264,20 @@ export default class QuickWallet {
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     if (!txCount) { txCount = wallet.deployed ? await walletContract.txCount() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
-    const signature = await this.sign(wallet.owner,
+    const txData = this._web3.eth.abi.encodeParameters(
+      ['address', 'bytes', 'address', 'uint256', 'uint256'],
+      [to, data, feeToken, feeValue, beforeTime]
+    );
+    const txSignature = await this.sign(wallet.owner,
       this._web3.utils.soliditySha3(
-        wallet.address, to, data, feeToken, feeValue, txCount, beforeTime
+        wallet.address, txData, txCount
       )
     );
     return {
       owner: wallet.owner,
       from: wallet.address,
-      to: to,
-      data: data,
-      feeToken: feeToken,
-      feeValue: feeValue,
-      beforeTime: beforeTime,
-      txCount: txCount,
-      signature: signature,
+      txData: txData,
+      txSignature: txSignature,
     };
   }
 

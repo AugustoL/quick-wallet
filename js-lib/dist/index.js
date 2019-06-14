@@ -258,7 +258,7 @@ function () {
       var _sendTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee2(_ref2) {
-        var from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice, wallet, walletContract, txCount, beforeTime, signature, _to, _data, txSigned;
+        var from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice, wallet, walletContract, txCount, beforeTime, txData, txSig, _to, _data, txSigned;
 
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
@@ -297,21 +297,22 @@ function () {
                 _context2.t1 = _context2.sent.timestamp;
                 _context2.t2 = timeLimit;
                 beforeTime = _context2.t1 + _context2.t2;
-                _context2.next = 20;
-                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, to, data, feeToken, feeValue, txCount, beforeTime));
+                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'address', 'uint256', 'uint256'], [to, data, feeToken, feeValue, beforeTime]);
+                _context2.next = 21;
+                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
 
-              case 20:
-                signature = _context2.sent;
+              case 21:
+                txSig = _context2.sent;
 
                 if (!wallet.deployed) {
-                  _data = this._walletFactory.methods.deployQuickWallet(to, data, feeToken, feeTo, feeValue, beforeTime, wallet.owner, signature).encodeABI();
+                  _data = this._walletFactory.methods.deployQuickWallet(wallet.owner, txData, txSig, wallet.owner).encodeABI();
                   _to = this._walletFactory.address;
                 } else {
-                  _data = walletContract.methods.call(to, data, feeToken, feeTo, feeValue, beforeTime, signature).encodeABI();
+                  _data = walletContract.methods.call(txData, txSig, wallet.owner).encodeABI();
                   _to = wallet.address;
                 }
 
-                _context2.next = 24;
+                _context2.next = 25;
                 return this.signETHTransaction({
                   from: wallet.owner,
                   to: _to,
@@ -320,11 +321,11 @@ function () {
                   gasPrice: gasPrice
                 });
 
-              case 24:
+              case 25:
                 txSigned = _context2.sent;
                 return _context2.abrupt("return", this._web3.eth.sendSignedTransaction(txSigned));
 
-              case 26:
+              case 27:
               case "end":
                 return _context2.stop();
             }
@@ -349,8 +350,7 @@ function () {
       var _relayTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee3(_ref3) {
-        var from, quickTransaction, chainId, gasPrice, gasLimit, walletContract, _to, _data, txSigned;
-
+        var from, quickTransaction, chainId, gasPrice, gasLimit, walletContract, to, data, txSigned;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -368,21 +368,21 @@ function () {
                   break;
                 }
 
-                _data = this._walletFactory.methods.deployQuickWallet(quickTransaction.to, quickTransaction.data, quickTransaction.feeToken, from, quickTransaction.feeValue, quickTransaction.beforeTime, quickTransaction.owner, quickTransaction.signature).encodeABI();
-                _to = this._walletFactory.address;
+                data = this._walletFactory.methods.deployQuickWallet(quickTransaction.owner, quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
+                to = this._walletFactory.address;
                 _context3.next = 12;
                 break;
 
               case 10:
-                _data = walletContract.methods.call(quickTransaction.to, quickTransaction.data, quickTransaction.feeToken, from, quickTransaction.feeValue, quickTransaction.beforeTime, quickTransaction.signature).encodeABI();
-                _to = quickTransaction.from;
+                data = walletContract.methods.call(quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
+                to = quickTransaction.from;
 
               case 12:
                 _context3.next = 14;
                 return this.signETHTransaction({
                   from: from,
-                  to: _to,
-                  data: _data,
+                  to: to,
+                  data: data,
                   gasPrice: gasPrice,
                   gasLimit: gasLimit
                 });
@@ -566,7 +566,7 @@ function () {
       var _signQuickTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee6(_ref8) {
-        var from, to, data, feeToken, feeValue, timeLimit, txCount, wallet, walletContract, beforeTime, signature;
+        var from, to, data, feeToken, feeValue, timeLimit, txCount, wallet, walletContract, beforeTime, txData, txSignature;
         return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
@@ -611,24 +611,20 @@ function () {
                 _context6.t1 = _context6.sent.timestamp;
                 _context6.t2 = timeLimit;
                 beforeTime = _context6.t1 + _context6.t2;
-                _context6.next = 21;
-                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, to, data, feeToken, feeValue, txCount, beforeTime));
+                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'address', 'uint256', 'uint256'], [to, data, feeToken, feeValue, beforeTime]);
+                _context6.next = 22;
+                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
 
-              case 21:
-                signature = _context6.sent;
+              case 22:
+                txSignature = _context6.sent;
                 return _context6.abrupt("return", {
                   owner: wallet.owner,
                   from: wallet.address,
-                  to: to,
-                  data: data,
-                  feeToken: feeToken,
-                  feeValue: feeValue,
-                  beforeTime: beforeTime,
-                  txCount: txCount,
-                  signature: signature
+                  txData: txData,
+                  txSignature: txSignature
                 });
 
-              case 23:
+              case 24:
               case "end":
                 return _context6.stop();
             }
