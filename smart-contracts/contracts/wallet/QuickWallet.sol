@@ -22,26 +22,26 @@ contract QuickWallet {
 
     /**
      * @dev Call a external contract and pay a fee for the call
-     * @param receiver The address of the contract to call
-     * @param data ABI-encoded contract call to call `_to` address.
-     * @param feeToken The token used for the fee, use this wallet address for ETH
-     * @param feeReceiver The receiver of the fee payment
-     * @param feeValue The amount to be payed as fee
-     * @param beforeTime timetstamp of the time where this tx cant be executed
-     * once it passed
+     * @param txData encoded data that contains:
+       * receiver The address of the contract to call
+       * data ABI-encoded contract call to call `_to` address.
+       * feeToken The token used for the fee, use this wallet address for ETH
+       * feeValue The amount to be payed as fee
+       * beforeTime timetstamp of the time where this tx cant be executed
+       * once it passed
      * @param txSignature The signature of the wallet owner
+     * @param feeReceiver The receiver of the fee payment
      */
-    function call(
-        address receiver, bytes memory data, address feeToken, address feeReceiver,
-        uint256 feeValue, uint256 beforeTime, bytes memory txSignature
-    ) public payable {
-        require(beforeTime > block.timestamp, "Invalid beforeTime value");
-        require(feeToken != address(0), "Invalid fee token");
+    function call(bytes memory txData, bytes memory txSignature, address feeReceiver) public payable {
+        (address receiver, bytes memory data, address feeToken, uint256 feeValue, uint256 beforeTime) =
+          abi.decode(txData, (address, bytes, address, uint256, uint256));
+        require(beforeTime > block.timestamp, "QuickWallet: Invalid beforeTime value");
+        require(feeToken != address(0), "QuickWallet: Invalid fee token");
 
         address _signer = keccak256(abi.encodePacked(
-            address(this), receiver, data, feeToken, feeValue, txCount, beforeTime
+            address(this), txData, txCount
         )).toEthSignedMessageHash().recover(txSignature);
-        require(owner() == _signer, "Signer is not wallet owner");
+        require(owner() == _signer, "QuickWallet: Signer is not wallet owner");
 
         _call(receiver, data);
 
@@ -61,7 +61,7 @@ contract QuickWallet {
      * @param value The amount of eth in wei to be transfered
      */
     function transfer(address payable receiver, uint256 value) public {
-        require(msg.sender == address(this));
+        require(msg.sender == address(this), "QuickWallet: Transfer cant be called outside contract");
         receiver.transfer(value);
     }
 
@@ -80,7 +80,7 @@ contract QuickWallet {
     function _call(address _to, bytes memory _data) internal {
         // solhint-disable-next-line avoid-call-value
         (bool success, bytes memory data) = _to.call.value(msg.value)(_data);
-        require(success, "Call to external contract failed");
+        require(success, "QuickWallet: Call to external contract failed");
     }
 
 }
