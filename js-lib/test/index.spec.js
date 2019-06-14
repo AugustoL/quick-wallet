@@ -23,7 +23,7 @@ describe('QuickWallet.index', () => {
     await web3.eth.sendTransaction({ from: tokenOwner, to: newWallet.address, value: 100 });
     await web3.eth.sendTransaction({ from: otherAccount, to: newWallet.owner, value: web3.utils.toWei('1000') });
 
-    const firstTxData = web3.eth.abi.encodeFunctionCall({
+    const txData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
@@ -31,7 +31,7 @@ describe('QuickWallet.index', () => {
     await quickWallet.sendTransaction({
       from: newWallet.address,
       to: newWallet.address,
-      data: firstTxData,
+      data: txData,
       feeToken: newWallet.address,
       feeTo: newWallet.owner,
       gasPrice: 1,
@@ -54,15 +54,15 @@ describe('QuickWallet.index', () => {
     await web3.eth.sendTransaction({ from: tokenOwner, to: senderWallet.address, value: 100 });
     await web3.eth.sendTransaction({ from: otherAccount, to: relayerWallet.owner, value: web3.utils.toWei('1000') });
 
-    const firstTxData = web3.eth.abi.encodeFunctionCall({
+    const txData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 10]);
-    const firstTxSigned = await quickWallet.signQuickTransaction({
+    const quickTransactionSigned = await quickWallet.signQuickTransaction({
       from: senderWallet.address,
       to: senderWallet.address,
-      data: firstTxData,
+      data: txData,
       feeToken: senderWallet.address,
       feeValue: 0,
       timeLimit: 60,
@@ -70,7 +70,7 @@ describe('QuickWallet.index', () => {
 
     await quickWallet.relayTransaction({
       from: relayerWallet.owner,
-      quickTransaction: firstTxSigned,
+      quickTransaction: quickTransactionSigned,
       gasPrice: 1,
     });
 
@@ -88,7 +88,7 @@ describe('QuickWallet.index', () => {
     await token.methods.transfer(newWallet.address, 100).send({ from: tokenOwner });
     await web3.eth.sendTransaction({ from: otherAccount, to: newWallet.owner, value: web3.utils.toWei('1000') });
 
-    const firstTxData = web3.eth.abi.encodeFunctionCall({
+    const txData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
@@ -96,7 +96,7 @@ describe('QuickWallet.index', () => {
     await quickWallet.sendTransaction({
       from: newWallet.address,
       to: token.address,
-      data: firstTxData,
+      data: txData,
       feeToken: token.address,
       feeTo: newWallet.owner,
       gasPrice: 1,
@@ -120,15 +120,15 @@ describe('QuickWallet.index', () => {
     await token.methods.transfer(senderWallet.address, 100).send({ from: tokenOwner });
     await web3.eth.sendTransaction({ from: otherAccount, to: relayerWallet.owner, value: web3.utils.toWei('1000') });
 
-    const firstTxData = web3.eth.abi.encodeFunctionCall({
+    const txData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, 50]);
-    const firstTxSigned = await quickWallet.signQuickTransaction({
+    const quickTransactionSigned = await quickWallet.signQuickTransaction({
       from: senderWallet.address,
       to: token.address,
-      data: firstTxData,
+      data: txData,
       feeToken: token.address,
       feeValue: 5,
       timeLimit: 60,
@@ -136,7 +136,7 @@ describe('QuickWallet.index', () => {
 
     await quickWallet.relayTransaction({
       from: relayerWallet.owner,
-      quickTransaction: firstTxSigned,
+      quickTransaction: quickTransactionSigned,
       gasPrice: 1,
     });
 
