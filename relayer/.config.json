@@ -1,0 +1,12 @@
+{
+  "quickWalletFactory": "0xd4E99F5d7fc04aBC74B872Baa83E14c1df3522f5",
+  "uniswapFactory": "0xf72d2665FE3451Dffff7C13f66Ed55a1ab2B2308",
+  "token": "0x5e224b954bC22a506f6022518Fbd723799Ce66BA",
+  "uniswapExchanges": [
+    {
+      "token": "0x5e224b954bC22a506f6022518Fbd723799Ce66BA",
+      "address": "0x6A3e093823035ce53A4203E51a13bC9293Fd64BD"
+    }
+  ],
+  "minimunETHWeiProfit": "100000"
+}

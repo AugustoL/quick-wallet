@@ -1,0 +1,80 @@
+{
+  "name": "quick-wallet-relayer",
+  "version": "0.0.1",
+  "description": "",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint test src",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "babel --ignore test --out-dir dist src",
+    "testnet": "scripts/testnet.sh",
+    "deploy-contracts": "node scripts/deploy-contracts.js",
+    "start": "node src/index.js",
+    "watch": "npx npm-watch",
+    "test-node": "npm start -- --config '../.config-dev.json' --web3Provider 'http://localhost:8545'",
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/augustol/quick-wallet.git"
+  },
+  "keywords": [
+    "ethereum",
+    "javascript",
+    "wallet",
+    "BIP44"
+  ],
+  "author": "Augusto Lemble <me@augustol.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/augustol/quick-wallet/issues"
+  },
+  "homepage": "https://github.com/augustol/quick-wallet",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.2.0",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-mocha-no-only": "^1.1.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "ethereumjs-util": "^6.0.0",
+    "ganache-cli": "^6.4.4",
+    "jest": "^24.7.1",
+    "node-fetch": "^2.6.0",
+    "request": "^2.88.0",
+    "superagent": "^5.0.9",
+    "supertest": "^4.0.2"
+  },
+  "dependencies": {
+    "eth-hd-wallet": "^0.4.0",
+    "ethereumjs-tx": "^1.3.7",
+    "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "express-prettify": "^0.1.1",
+    "request-promise-native": "^1.0.7",
+    "solidity-bytes-utils": "0.0.7",
+    "web3": "^1.0.0-beta.55"
+  },
+  "jest": {
+    "testRegex": "./test/.*.spec.js",
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  },
+  "watch": {
+    "test-node": "{src,test}/*.js",
+    "test": "test/*.js"
+  }
+}

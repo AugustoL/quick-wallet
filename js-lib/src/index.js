@@ -155,7 +155,7 @@ export default class QuickWallet {
   async sendTransaction ({ from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    const txCount = wallet.deployed ? await walletContract.txCount() : 0;
+    const txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
       ['address', 'bytes', 'address', 'uint256', 'uint256'],
@@ -211,6 +211,32 @@ export default class QuickWallet {
   }
 
   /**
+   * Relay a signed quickTransaction from owner address
+   * @return Object
+   */
+  async estimateRelayCost ({ from, quickTransaction }) {
+    const walletContract = new this._web3.eth.Contract(walletABI, quickTransaction.from);
+    let to, data;
+    if ((await this._web3.eth.getCode(quickTransaction.from)) === '0x') {
+      data = this._walletFactory.methods.deployQuickWallet(
+        quickTransaction.owner,
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
+      ).encodeABI();
+      to = this._walletFactory.address;
+    } else {
+      data = walletContract.methods.call(
+        quickTransaction.txData,
+        quickTransaction.txSignature,
+        from
+      ).encodeABI();
+      to = quickTransaction.from;
+    }
+    return this._web3.eth.estimateGas({from: from, to: to, data: data});
+  }
+
+  /**
    * Send transaction from owner address
    * @return Object
    */
@@ -262,7 +288,7 @@ export default class QuickWallet {
   async signQuickTransaction ({ from, to, data, feeToken, feeValue, timeLimit, txCount }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    if (!txCount) { txCount = wallet.deployed ? await walletContract.txCount() : 0; }
+    if (!txCount) { txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
       ['address', 'bytes', 'address', 'uint256', 'uint256'],
