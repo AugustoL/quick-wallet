@@ -155,7 +155,7 @@ export default class QuickWallet {
   async sendTransaction ({ from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    const txCount = wallet.deployed ? await walletContract.txCount() : 0;
+    const txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
       ['address', 'bytes', 'address', 'uint256', 'uint256'],
@@ -288,7 +288,7 @@ export default class QuickWallet {
   async signQuickTransaction ({ from, to, data, feeToken, feeValue, timeLimit, txCount }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
-    if (!txCount) { txCount = wallet.deployed ? await walletContract.txCount() : 0; }
+    if (!txCount) { txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
       ['address', 'bytes', 'address', 'uint256', 'uint256'],

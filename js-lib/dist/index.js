@@ -278,7 +278,7 @@ function () {
                 }
 
                 _context2.next = 8;
-                return walletContract.txCount();
+                return walletContract.methods.txCount().call();
 
               case 8:
                 _context2.t0 = _context2.sent;
@@ -649,7 +649,7 @@ function () {
                 }
 
                 _context7.next = 9;
-                return walletContract.txCount();
+                return walletContract.methods.txCount().call();
 
               case 9:
                 _context7.t0 = _context7.sent;
