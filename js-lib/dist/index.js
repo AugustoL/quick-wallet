@@ -258,13 +258,13 @@ function () {
       var _sendTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee2(_ref2) {
-        var from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice, wallet, walletContract, txCount, beforeTime, txData, txSig, _to, _data, txSigned;
+        var from, to, data, value, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice, wallet, walletContract, txCount, beforeTime, txData, txSig, _to, _data, txSigned;
 
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                from = _ref2.from, to = _ref2.to, data = _ref2.data, feeToken = _ref2.feeToken, feeTo = _ref2.feeTo, feeValue = _ref2.feeValue, timeLimit = _ref2.timeLimit, chainId = _ref2.chainId, gasPrice = _ref2.gasPrice;
+                from = _ref2.from, to = _ref2.to, data = _ref2.data, value = _ref2.value, feeToken = _ref2.feeToken, feeTo = _ref2.feeTo, feeValue = _ref2.feeValue, timeLimit = _ref2.timeLimit, chainId = _ref2.chainId, gasPrice = _ref2.gasPrice;
                 _context2.next = 3;
                 return this.getQuickWallet(from);
 
@@ -297,7 +297,7 @@ function () {
                 _context2.t1 = _context2.sent.timestamp;
                 _context2.t2 = timeLimit;
                 beforeTime = _context2.t1 + _context2.t2;
-                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'address', 'uint256', 'uint256'], [to, data, feeToken, feeValue, beforeTime]);
+                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'], [to, data, value, feeToken, feeValue, beforeTime]);
                 _context2.next = 21;
                 return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
 
@@ -625,12 +625,12 @@ function () {
       var _signQuickTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee7(_ref9) {
-        var from, to, data, feeToken, feeValue, timeLimit, txCount, wallet, walletContract, beforeTime, txData, txSignature;
+        var from, to, data, value, feeToken, feeValue, timeLimit, txCount, wallet, walletContract, beforeTime, txData, txSignature;
         return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                from = _ref9.from, to = _ref9.to, data = _ref9.data, feeToken = _ref9.feeToken, feeValue = _ref9.feeValue, timeLimit = _ref9.timeLimit, txCount = _ref9.txCount;
+                from = _ref9.from, to = _ref9.to, data = _ref9.data, value = _ref9.value, feeToken = _ref9.feeToken, feeValue = _ref9.feeValue, timeLimit = _ref9.timeLimit, txCount = _ref9.txCount;
                 _context7.next = 3;
                 return this.getQuickWallet(from);
 
@@ -670,7 +670,7 @@ function () {
                 _context7.t1 = _context7.sent.timestamp;
                 _context7.t2 = timeLimit;
                 beforeTime = _context7.t1 + _context7.t2;
-                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'address', 'uint256', 'uint256'], [to, data, feeToken, feeValue, beforeTime]);
+                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'], [to, data, value, feeToken, feeValue, beforeTime]);
                 _context7.next = 22;
                 return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
 

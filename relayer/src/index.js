@@ -72,6 +72,7 @@ app.post('/', asyncHandler(async (req, res, next) => {
   const txData = web3.eth.abi.decodeParameters(
     [{name: 'to', type: 'address'},
     {name: 'data', type: 'bytes'},
+    {name: 'value', type: 'uint256'},
     {name: 'feeToken', type: 'address'},
     {name: 'feeValue', type: 'uint256'},
     {name: 'beforeTime', type: 'uint256'}],

@@ -25,7 +25,8 @@ contract QuickWalletFactory {
      * @param walletOwner The owner of the wallet to deploy
      * @param txData encoded data that contains:
        * receiver The address of the contract to call
-       * data ABI-encoded contract call to call `_to` address.
+       * data ABI-encoded contract call to call `_to` address
+       * value Amount of ETH in wei to be sent in the call
        * feeToken The token used for the fee, use this wallet address for ETH
        * feeValue The amount to be payed as fee
        * beforeTime timetstamp of the time where this tx cant be executed
