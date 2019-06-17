@@ -24,7 +24,8 @@ contract QuickWallet {
      * @dev Call a external contract and pay a fee for the call
      * @param txData encoded data that contains:
        * receiver The address of the contract to call
-       * data ABI-encoded contract call to call `_to` address.
+       * data ABI-encoded contract call to call `_to` address
+       * value Amount of ETH in wei to be sent in the call
        * feeToken The token used for the fee, use this wallet address for ETH
        * feeValue The amount to be payed as fee
        * beforeTime timetstamp of the time where this tx cant be executed
@@ -33,8 +34,8 @@ contract QuickWallet {
      * @param feeReceiver The receiver of the fee payment
      */
     function call(bytes memory txData, bytes memory txSignature, address feeReceiver) public payable {
-        (address receiver, bytes memory data, address feeToken, uint256 feeValue, uint256 beforeTime) =
-          abi.decode(txData, (address, bytes, address, uint256, uint256));
+        (address receiver, bytes memory data, uint256 value, address feeToken, uint256 feeValue, uint256 beforeTime) =
+          abi.decode(txData, (address, bytes, uint256, address, uint256, uint256));
         require(beforeTime > block.timestamp, "QuickWallet: Invalid beforeTime value");
         require(feeToken != address(0), "QuickWallet: Invalid fee token");
 
@@ -43,20 +44,20 @@ contract QuickWallet {
         )).toEthSignedMessageHash().recover(txSignature);
         require(owner() == _signer, "QuickWallet: Signer is not wallet owner");
 
-        _call(receiver, data);
+        _call(receiver, data, value);
 
         if (feeValue > 0) {
           bytes memory feePaymentData = abi.encodeWithSelector(
               bytes4(keccak256("transfer(address,uint256)")), feeReceiver, feeValue
           );
-          _call(feeToken, feePaymentData);
+          _call(feeToken, feePaymentData, 0);
         }
 
         txCount++;
     }
 
     /**
-     * @dev Transfer eth, can only be called from this contract
+     * @dev ERC20 transfer of ETH, can only be called from this contract
      * @param receiver The address to transfer the eth
      * @param value The amount of eth in wei to be transfered
      */
@@ -76,10 +77,11 @@ contract QuickWallet {
      * @dev Call a external contract
      * @param _to The address of the contract to call
      * @param _data ABI-encoded contract call to call `_to` address.
+     * @param _value The amount of ETH in wei to be sent in the call
      */
-    function _call(address _to, bytes memory _data) internal {
+    function _call(address _to, bytes memory _data, uint256 _value) internal {
         // solhint-disable-next-line avoid-call-value
-        (bool success, bytes memory data) = _to.call.value(msg.value)(_data);
+        (bool success, bytes memory data) = _to.call.value(_value)(_data);
         require(success, "QuickWallet: Call to external contract failed");
     }
 
