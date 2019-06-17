@@ -20,7 +20,7 @@ describe('relayer.index', () => {
     mnemonic = await QuickWallet.generateMnemonic();
   });
 
-  it('relay transaction using QuickWallet and pay fee in ETH', async function () {
+  it.only('relay transaction using QuickWallet and pay fee in ETH', async function () {
     const quickWallet = QuickWallet.fromMnemonic(mnemonic, config.quickWalletFactory);
     quickWallet.generateAddresses(1);
     const quickWallets = quickWallet.getQuickWallets();
@@ -37,6 +37,7 @@ describe('relayer.index', () => {
       from: senderWallet.address,
       to: senderWallet.address,
       data: firstTxData,
+      value: 0,
       feeToken: senderWallet.address,
       feeValue: web3.utils.toWei("0.001"),
       timeLimit: 60,
@@ -69,11 +70,11 @@ describe('relayer.index', () => {
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, web3.utils.toWei("0.999")]);
-    console.log(1)
     const firstTxSigned = await quickWallet.signQuickTransaction({
       from: senderWallet.address,
       to: token.address,
       data: firstTxData,
+      value: 0,
       feeToken: token.address,
       feeValue: web3.utils.toWei("0.001"),
       timeLimit: 60,
