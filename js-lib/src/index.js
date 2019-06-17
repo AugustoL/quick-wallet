@@ -152,14 +152,14 @@ export default class QuickWallet {
    * Send transaction from owner address
    * @return Object
    */
-  async sendTransaction ({ from, to, data, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
+  async sendTransaction ({ from, to, data, value, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     const txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
-      ['address', 'bytes', 'address', 'uint256', 'uint256'],
-      [to, data, feeToken, feeValue, beforeTime]
+      ['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'],
+      [to, data, value, feeToken, feeValue, beforeTime]
     );
     const txSig = await this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
     let _to, _data;
@@ -285,14 +285,14 @@ export default class QuickWallet {
    * Sign quick transaction from owner address
    * @return Object
    */
-  async signQuickTransaction ({ from, to, data, feeToken, feeValue, timeLimit, txCount }) {
+  async signQuickTransaction ({ from, to, data, value, feeToken, feeValue, timeLimit, txCount }) {
     const wallet = await this.getQuickWallet(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     if (!txCount) { txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
     const txData = this._web3.eth.abi.encodeParameters(
-      ['address', 'bytes', 'address', 'uint256', 'uint256'],
-      [to, data, feeToken, feeValue, beforeTime]
+      ['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'],
+      [to, data, value, feeToken, feeValue, beforeTime]
     );
     const txSignature = await this.sign(wallet.owner,
       this._web3.utils.soliditySha3(
