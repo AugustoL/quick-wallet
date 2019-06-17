@@ -44,6 +44,8 @@ contract QuickWallet {
         )).toEthSignedMessageHash().recover(txSignature);
         require(owner() == _signer, "QuickWallet: Signer is not wallet owner");
 
+        txCount++;
+        
         _call(receiver, data, value);
 
         if (feeValue > 0) {
@@ -52,8 +54,6 @@ contract QuickWallet {
           );
           _call(feeToken, feePaymentData, 0);
         }
-
-        txCount++;
     }
 
     /**
