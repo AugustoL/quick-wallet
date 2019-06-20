@@ -20,7 +20,7 @@ describe('relayer.index', () => {
     mnemonic = await QuickWallet.generateMnemonic();
   });
 
-  it.only('relay transaction using QuickWallet and pay fee in ETH', async function () {
+  it('relay transaction using QuickWallet and pay fee in ETH', async function () {
     const quickWallet = QuickWallet.fromMnemonic(mnemonic, config.quickWalletFactory);
     quickWallet.generateAddresses(1);
     const quickWallets = quickWallet.getQuickWallets();
@@ -57,13 +57,13 @@ describe('relayer.index', () => {
     assert(await senderWallet.contract.methods.owner().call(), web3.utils.toChecksumAddress(senderWallet.owner));
   });
 
-  it('relay transaction using QuickWallet and pay fee in ERC20', async function () {
+  // Skip till https://github.com/trufflesuite/ganache-core/pull/419 is merged
+  it.skip('relay transaction using QuickWallet and pay fee in ERC20', async function () {
     const quickWallet = QuickWallet.fromMnemonic(mnemonic, config.quickWalletFactory);
     quickWallet.generateAddresses(1);
     const quickWallets = quickWallet.getQuickWallets();
     const senderWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
-
-    await token.methods.transfer(senderWallet.address, web3.utils.toWei("1")).send({ from: tokenOwner });
+    await token.methods.transfer(senderWallet.address, web3.utils.toWei("1")).send({ from: tokenOwner, chianId: 1337 });
 
     const firstTxData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
