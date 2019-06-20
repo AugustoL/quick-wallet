@@ -4,7 +4,7 @@
 set -o errexit
 
 # Executes cleanup function at script exit.
-trap cleanup EXIT
+# trap cleanup EXIT
 
 cleanup() {
   # Kill the ganache instance that we started (if we started one and if it's still running).
@@ -47,4 +47,4 @@ else
 fi
 
 npm run deploy-contracts
-trap 'sleep infinity' EXIT
+npm run watch
