@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import { fromExtendedKey } from 'ethereumjs-wallet/hdkey';
 import EthSigUtil from 'eth-sig-util';
 import EthereumTx from 'ethereumjs-tx';
@@ -55,8 +56,9 @@ export default class QuickWallet {
    */
   constructor (xPrivKey, walletFactoryAddress, web3Provider = 'http://localhost:8545') {
     this._web3 = new Web3(web3Provider, undefined, { transactionConfirmationBlocks: 1 });
-
     this._walletFactory = new this._web3.eth.Contract(walletFactoryABI, walletFactoryAddress);
+    if (!this._walletFactory.address)
+      this._walletFactory.address = this._walletFactory._address;
     this._hdKey = fromExtendedKey(xPrivKey);
     this._root = this._hdKey.derivePath(BIP44_PATH);
     this._children = [];
@@ -75,43 +77,43 @@ export default class QuickWallet {
   }
 
   /**
-   * Deterministically computes the smart contract address
-   *
-   * @param String ncreatorAddress The address of the creator contract
-   * @param String saltHex The salt to be used in hex format
-   * @param String byteCode The bytecode of the smart contract to create
-   */
-  buildCreate2Address (creatorAddress, saltHex, byteCode) {
-    return this._web3.utils.toChecksumAddress(`0x${this._web3.utils.sha3(`0x${[
-      'ff',
-      creatorAddress,
-      saltHex,
-      this._web3.utils.soliditySha3(byteCode),
-    ].map(x => x.replace(/0x/, '')).join('')}`).slice(-40)}`);
-  };
-
-  /**
-   * Discard generated addresses.
-   *
-   * @param Number num The number of addresses to remove from the end of the list of addresses.
-   *
-   * @return [String] The discarded addresses
-   */
+  * Discard generated addresses.
+  *
+  * @param Number num The number of addresses to remove from the end of the list of addresses.
+  *
+  * @return [String] The discarded addresses
+  */
   discardAddresses (num) {
     const discard = this._children.splice(-num);
     return discard.map(k => k.address);
   }
 
   /**
-   * Get all addresses.
-   * @return [String]
-   */
+  * Get all addresses.
+  * @return [String]
+  */
   getAddresses () {
     return this._children.map(k => k.address);
   }
 
   /**
-   * Get all wallets.
+   * Deterministically computes the smart contract address
+   *
+   * @param String deployerAddress The address of the creator contract
+   * @param String saltHex The salt to be used in hex format
+   * @param String byteCode The bytecode of the smart contract to create
+   */
+  buildCreate2Address (deployerAddress, saltHex, byteCode) {
+    return this._web3.utils.toChecksumAddress(`0x${this._web3.utils.sha3(`0x${[
+      'ff',
+      deployerAddress,
+      saltHex,
+      this._web3.utils.soliditySha3(byteCode),
+    ].map(x => x.replace(/0x/, '')).join('')}`).slice(-40)}`);
+  };
+
+  /**
+   * Get all quickwallets addresses and owners.
    * @return [Object]
    */
   getQuickWallets () {
@@ -124,11 +126,11 @@ export default class QuickWallet {
   }
 
   /**
-   * Get wallet info.
+   * Get the quickwallet info.
    *
    * @return Object
    */
-  async getQuickWallet (addr) {
+  async getQuickWalletInfo (addr) {
     const wallet = this._children.find(({ address }) => addr === address);
     if (!wallet) { throw new Error('Invalid quick wallet address'); }
 
@@ -153,7 +155,7 @@ export default class QuickWallet {
    * @return Object
    */
   async sendTransaction ({ from, to, data, value, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice }) {
-    const wallet = await this.getQuickWallet(from);
+    const wallet = await this.getQuickWalletInfo(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     const txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0;
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;
@@ -237,17 +239,6 @@ export default class QuickWallet {
   }
 
   /**
-   * Send transaction from owner address
-   * @return Object
-   */
-  async sendTransactionFromOwner ({ from, to, data, gasLimit, chainId, gasPrice }) {
-    const txSigned = await this.signETHTransaction(
-      { from: from, to: to, data: data, gasLimit: gasLimit, chainId: chainId, gasPrice: gasPrice }
-    );
-    return this._web3.eth.sendSignedTransaction(txSigned);
-  }
-
-  /**
    * Sign ETH transaction data.
    *
    * @param  String from From address
@@ -286,7 +277,7 @@ export default class QuickWallet {
    * @return Object
    */
   async signQuickTransaction ({ from, to, data, value, feeToken, feeValue, timeLimit, txCount }) {
-    const wallet = await this.getQuickWallet(from);
+    const wallet = await this.getQuickWalletInfo(from);
     const walletContract = new this._web3.eth.Contract(walletABI, from);
     if (!txCount) { txCount = wallet.deployed ? await walletContract.methods.txCount().call() : 0; }
     const beforeTime = (await this._web3.eth.getBlock('latest')).timestamp + timeLimit;

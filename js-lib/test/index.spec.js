@@ -7,10 +7,12 @@ describe('QuickWallet.index', () => {
 
   beforeEach(async () => {
     factory = await deployQuickWalletFactory();
+    factory.address = factory._address;
     accounts = await getAccounts();
     tokenOwner = accounts[0];
     otherAccount = accounts[3];
     token = await deployERC20Mock(tokenOwner, 100);
+    token.address = token._address;
     mnemonic = QuickWallet.generateMnemonic();
   });
 
@@ -19,7 +21,7 @@ describe('QuickWallet.index', () => {
     quickWallet.generateAddresses(1);
 
     const quickWallets = quickWallet.getQuickWallets();
-    const newWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
+    const newWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].address);
     await web3.eth.sendTransaction({ from: tokenOwner, to: newWallet.address, value: 100 });
     await web3.eth.sendTransaction({ from: otherAccount, to: newWallet.owner, value: web3.utils.toWei('1000') });
 
@@ -50,8 +52,8 @@ describe('QuickWallet.index', () => {
     quickWallet.generateAddresses(2);
 
     const quickWallets = quickWallet.getQuickWallets();
-    const senderWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
-    const relayerWallet = await quickWallet.getQuickWallet(quickWallets[1].address);
+    const senderWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].address);
+    const relayerWallet = await quickWallet.getQuickWalletInfo(quickWallets[1].address);
     await web3.eth.sendTransaction({ from: tokenOwner, to: senderWallet.address, value: 100 });
     await web3.eth.sendTransaction({ from: otherAccount, to: relayerWallet.owner, value: web3.utils.toWei('1000') });
 
@@ -86,7 +88,7 @@ describe('QuickWallet.index', () => {
     quickWallet.generateAddresses(1);
 
     const quickWallets = quickWallet.getQuickWallets();
-    const newWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
+    const newWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].address);
     await token.methods.transfer(newWallet.address, 100).send({ from: tokenOwner });
     await web3.eth.sendTransaction({ from: otherAccount, to: newWallet.owner, value: web3.utils.toWei('1000') });
 
@@ -118,8 +120,8 @@ describe('QuickWallet.index', () => {
     quickWallet.generateAddresses(2);
 
     const quickWallets = quickWallet.getQuickWallets();
-    const senderWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
-    const relayerWallet = await quickWallet.getQuickWallet(quickWallets[1].address);
+    const senderWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].address);
+    const relayerWallet = await quickWallet.getQuickWalletInfo(quickWallets[1].address);
     await token.methods.transfer(senderWallet.address, 100).send({ from: tokenOwner });
     await web3.eth.sendTransaction({ from: otherAccount, to: relayerWallet.owner, value: web3.utils.toWei('1000') });
 

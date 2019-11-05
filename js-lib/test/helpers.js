@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import Web3 from 'web3';
 import QuickWalletFactory from '../../smart-contracts/build/contracts/QuickWalletFactory.json';
 import QuickWallet from '../../smart-contracts/build/contracts/QuickWallet.json';
@@ -27,5 +28,5 @@ export const deployERC20Mock = async (account, initialBalance) => {
     data: ERC20Mock.bytecode,
     arguments: [account, initialBalance],
   }).send({ from: accounts[0], gasPrice: 1, gasLimit: 4700000 });
-  return web3.eth.Contract(ERC20Mock.abi, token.address);
+  return token;
 };

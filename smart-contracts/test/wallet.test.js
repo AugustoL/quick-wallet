@@ -13,13 +13,13 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
   const walletBytecode = QuickWallet.bytecode;
   const quickWalletCallParameters = ['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'];
 
-  const encodeTransfer = function(to, value) {
+  const encodeTransfer = function (to, value) {
     return web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
       type: 'frunction',
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [to, value]);
-  }
+  };
 
   beforeEach(async function () {
     const create2Lib = await Create2.new();
@@ -39,13 +39,12 @@ contract('QuickWallet', function ([_, tokenOwner, walletOwner, relayer, otherAcc
       const beforeTime = (await time.latest()) + _timeLimit;
       const walletAddress = await this.computeWalletAddress(_walletOwner);
       const txData = web3.eth.abi.encodeParameters(
-        quickWalletCallParameters, [_firstTxTo, _firstTxData, _value,  _tokenFee, _feeValue, beforeTime]
+        quickWalletCallParameters, [_firstTxTo, _firstTxData, _value, _tokenFee, _feeValue, beforeTime]
       );
       const txSigned = await signMessage(_walletOwner, web3.utils.soliditySha3(walletAddress, txData, 0));
       await this.factory.deployQuickWallet(_walletOwner, txData, txSigned, relayer, { from: relayer });
       return QuickWallet.at(walletAddress);
     };
-
   });
 
   it('should deploy a QuickWallet contract with correct owner and pay fee in tokens', async function () {

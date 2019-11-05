@@ -34,8 +34,10 @@ contract QuickWallet {
      * @param feeReceiver The receiver of the fee payment
      */
     function call(bytes memory txData, bytes memory txSignature, address feeReceiver) public payable {
-        (address receiver, bytes memory data, uint256 value, address feeToken, uint256 feeValue, uint256 beforeTime) =
-          abi.decode(txData, (address, bytes, uint256, address, uint256, uint256));
+        (address receiver, bytes memory data,
+            uint256 value, address feeToken,
+            uint256 feeValue, uint256 beforeTime
+        ) = abi.decode(txData, (address, bytes, uint256, address, uint256, uint256));
         require(beforeTime > block.timestamp, "QuickWallet: Invalid beforeTime value");
         require(feeToken != address(0), "QuickWallet: Invalid fee token");
 
@@ -45,14 +47,14 @@ contract QuickWallet {
         require(owner() == _signer, "QuickWallet: Signer is not wallet owner");
 
         txCount++;
-        
+
         _call(receiver, data, value);
 
         if (feeValue > 0) {
-          bytes memory feePaymentData = abi.encodeWithSelector(
-              bytes4(keccak256("transfer(address,uint256)")), feeReceiver, feeValue
-          );
-          _call(feeToken, feePaymentData, 0);
+            bytes memory feePaymentData = abi.encodeWithSelector(
+                bytes4(keccak256("transfer(address,uint256)")), feeReceiver, feeValue
+            );
+            _call(feeToken, feePaymentData, 0);
         }
     }
 
@@ -70,7 +72,7 @@ contract QuickWallet {
      * @dev Get QuickWallet owner address
      */
     function owner() public view returns (address) {
-      return _owner;
+        return _owner;
     }
 
     /**
