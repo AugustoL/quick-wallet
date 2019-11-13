@@ -11,8 +11,6 @@ var _hdkey = require("ethereumjs-wallet/hdkey");
 
 var _ethSigUtil = _interopRequireDefault(require("eth-sig-util"));
 
-var _ethereumjsTx = _interopRequireDefault(require("ethereumjs-tx"));
-
 var _bitcoreMnemonic = _interopRequireDefault(require("bitcore-mnemonic"));
 
 var _web = _interopRequireDefault(require("web3"));
@@ -94,13 +92,18 @@ function () {
     _classCallCheck(this, QuickWallet);
 
     this._web3 = new _web["default"](web3Provider, undefined, {
-      transactionConfirmationBlocks: 1
+      transactionConfirmationBlocks: 1,
+      defaultHardfork: 'constantinople'
     });
     this._walletFactory = new this._web3.eth.Contract(_QuickWalletFactory.abi, walletFactoryAddress);
-    if (!this._walletFactory.address) this._walletFactory.address = this._walletFactory._address;
+
+    if (!this._walletFactory.address) {
+      this._walletFactory.address = this._walletFactory._address;
+    }
+
     this._hdKey = (0, _hdkey.fromExtendedKey)(xPrivKey);
     this._root = this._hdKey.derivePath(BIP44_PATH);
-    this._children = [];
+    this.wallets = [];
   }
   /**
    * Generate new addresses.
@@ -117,67 +120,33 @@ function () {
       var newKeys = this._deriveNewKeys(num);
 
       return newKeys.map(function (k) {
-        return k.address;
+        return k.secondaryAddress;
       });
     }
     /**
-    * Discard generated addresses.
+    * Remove a generated addresses.
     *
-    * @param Number num The number of addresses to remove from the end of the list of addresses.
+    * @param The address to be removed from the list of addresses.
     *
-    * @return [String] The discarded addresses
+    * @return [String] The address to remove
     */
 
   }, {
-    key: "discardAddresses",
-    value: function discardAddresses(num) {
-      var discard = this._children.splice(-num);
-
-      return discard.map(function (k) {
-        return k.address;
-      });
+    key: "removeAddress",
+    value: function removeAddress(secondaryAddress) {
+      this.wallets.splice(this.wallets.findIndex(function (w) {
+        return w.secondaryAddress;
+      }), 1);
     }
-    /**
-    * Get all addresses.
-    * @return [String]
-    */
-
-  }, {
-    key: "getAddresses",
-    value: function getAddresses() {
-      return this._children.map(function (k) {
-        return k.address;
-      });
-    }
-    /**
-     * Deterministically computes the smart contract address
-     *
-     * @param String deployerAddress The address of the creator contract
-     * @param String saltHex The salt to be used in hex format
-     * @param String byteCode The bytecode of the smart contract to create
-     */
-
-  }, {
-    key: "buildCreate2Address",
-    value: function buildCreate2Address(deployerAddress, saltHex, byteCode) {
-      return this._web3.utils.toChecksumAddress("0x".concat(this._web3.utils.sha3("0x".concat(['ff', deployerAddress, saltHex, this._web3.utils.soliditySha3(byteCode)].map(function (x) {
-        return x.replace(/0x/, '');
-      }).join(''))).slice(-40)));
-    }
-  }, {
-    key: "getQuickWallets",
-
     /**
      * Get all quickwallets addresses and owners.
      * @return [Object]
      */
+
+  }, {
+    key: "getQuickWallets",
     value: function getQuickWallets() {
-      return this._children.map(function (k) {
-        return {
-          address: k.address,
-          owner: k.owner
-        };
-      });
+      return this.wallets;
     }
     /**
      * Get the quickwallet info.
@@ -190,38 +159,38 @@ function () {
     value: function () {
       var _getQuickWalletInfo = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee(addr) {
-        var wallet;
+      regeneratorRuntime.mark(function _callee(secondaryAddr) {
+        var quickWallet;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                wallet = this._children.find(function (_ref) {
-                  var address = _ref.address;
-                  return addr === address;
+                quickWallet = this.wallets.find(function (_ref) {
+                  var secondaryAddress = _ref.secondaryAddress;
+                  return secondaryAddress === secondaryAddr;
                 });
 
-                if (wallet) {
+                if (quickWallet) {
                   _context.next = 3;
                   break;
                 }
 
-                throw new Error('Invalid quick wallet address');
+                throw new Error('Invalid quick quickWallet address');
 
               case 3:
                 _context.next = 5;
-                return this._web3.eth.getCode(wallet.address);
+                return this._web3.eth.getCode(quickWallet.secondaryAddress);
 
               case 5:
                 _context.t0 = _context.sent;
-                wallet.deployed = _context.t0 !== '0x';
+                quickWallet.deployed = _context.t0 !== '0x';
                 _context.next = 9;
-                return this._web3.eth.getBalance(wallet.address);
+                return this._web3.eth.getBalance(quickWallet.secondaryAddress);
 
               case 9:
-                wallet.balance = _context.sent;
-                wallet.contract = new this._web3.eth.Contract(_QuickWallet.abi, wallet.address);
-                return _context.abrupt("return", wallet);
+                quickWallet.balance = _context.sent;
+                quickWallet.contract = new this._web3.eth.Contract(_QuickWallet.abi, quickWallet.secondaryAddress);
+                return _context.abrupt("return", quickWallet);
 
               case 12:
               case "end":
@@ -238,20 +207,7 @@ function () {
       return getQuickWalletInfo;
     }()
     /**
-     * Get no. of addresses.
-     *
-     * @return Number
-     */
-
-  }, {
-    key: "getAddressCount",
-    value: function getAddressCount() {
-      return this._children.map(function (k) {
-        return k.address;
-      }).length;
-    }
-    /**
-     * Send transaction from owner address
+     * Send transaction from primary address
      * @return Object
      */
 
@@ -261,74 +217,32 @@ function () {
       var _sendTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee2(_ref2) {
-        var from, to, data, value, feeToken, feeTo, feeValue, timeLimit, chainId, gasPrice, wallet, walletContract, txCount, beforeTime, txData, txSig, _to, _data, txSigned;
-
+        var from, to, data, value, feeToken, feePayeer, feeValue, timeLimit, chainId, gasPrice, quickTransactionSigned;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                from = _ref2.from, to = _ref2.to, data = _ref2.data, value = _ref2.value, feeToken = _ref2.feeToken, feeTo = _ref2.feeTo, feeValue = _ref2.feeValue, timeLimit = _ref2.timeLimit, chainId = _ref2.chainId, gasPrice = _ref2.gasPrice;
+                from = _ref2.from, to = _ref2.to, data = _ref2.data, value = _ref2.value, feeToken = _ref2.feeToken, feePayeer = _ref2.feePayeer, feeValue = _ref2.feeValue, timeLimit = _ref2.timeLimit, chainId = _ref2.chainId, gasPrice = _ref2.gasPrice;
                 _context2.next = 3;
-                return this.getQuickWalletInfo(from);
-
-              case 3:
-                wallet = _context2.sent;
-                walletContract = new this._web3.eth.Contract(_QuickWallet.abi, from);
-
-                if (!wallet.deployed) {
-                  _context2.next = 11;
-                  break;
-                }
-
-                _context2.next = 8;
-                return walletContract.methods.txCount().call();
-
-              case 8:
-                _context2.t0 = _context2.sent;
-                _context2.next = 12;
-                break;
-
-              case 11:
-                _context2.t0 = 0;
-
-              case 12:
-                txCount = _context2.t0;
-                _context2.next = 15;
-                return this._web3.eth.getBlock('latest');
-
-              case 15:
-                _context2.t1 = _context2.sent.timestamp;
-                _context2.t2 = timeLimit;
-                beforeTime = _context2.t1 + _context2.t2;
-                txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'], [to, data, value, feeToken, feeValue, beforeTime]);
-                _context2.next = 21;
-                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
-
-              case 21:
-                txSig = _context2.sent;
-
-                if (!wallet.deployed) {
-                  _data = this._walletFactory.methods.deployQuickWallet(wallet.owner, txData, txSig, wallet.owner).encodeABI();
-                  _to = this._walletFactory.address;
-                } else {
-                  _data = walletContract.methods.call(txData, txSig, wallet.owner).encodeABI();
-                  _to = wallet.address;
-                }
-
-                _context2.next = 25;
-                return this.signETHTransaction({
-                  from: wallet.owner,
-                  to: _to,
-                  data: _data,
-                  chainId: chainId,
-                  gasPrice: gasPrice
+                return this.signQuickTransaction({
+                  from: from,
+                  to: to,
+                  data: data,
+                  value: value,
+                  feeToken: feeToken,
+                  feeValue: feeValue,
+                  timeLimit: 60
                 });
 
-              case 25:
-                txSigned = _context2.sent;
-                return _context2.abrupt("return", this._web3.eth.sendSignedTransaction(txSigned));
+              case 3:
+                quickTransactionSigned = _context2.sent;
+                return _context2.abrupt("return", this.relayTransaction({
+                  gasPrice: gasPrice,
+                  from: feePayeer,
+                  quickTransaction: quickTransactionSigned
+                }));
 
-              case 27:
+              case 5:
               case "end":
                 return _context2.stop();
             }
@@ -371,7 +285,7 @@ function () {
                   break;
                 }
 
-                data = this._walletFactory.methods.deployQuickWallet(quickTransaction.owner, quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
+                data = this._walletFactory.methods.deployQuickWallet(quickTransaction.primaryAddress, quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
                 to = this._walletFactory.address;
                 _context3.next = 12;
                 break;
@@ -392,7 +306,7 @@ function () {
 
               case 14:
                 txSigned = _context3.sent;
-                return _context3.abrupt("return", this._web3.eth.sendSignedTransaction(txSigned));
+                return _context3.abrupt("return", this._web3.eth.sendSignedTransaction(txSigned.rawTransaction));
 
               case 16:
               case "end":
@@ -410,7 +324,7 @@ function () {
     }()
     /**
      * Relay a signed quickTransaction from owner address
-     * @return Object
+     * @return Number
      */
 
   }, {
@@ -437,7 +351,7 @@ function () {
                   break;
                 }
 
-                data = this._walletFactory.methods.deployQuickWallet(quickTransaction.owner, quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
+                data = this._walletFactory.methods.deployQuickWallet(quickTransaction.primaryAddress, quickTransaction.txData, quickTransaction.txSignature, from).encodeABI();
                 to = this._walletFactory.address;
                 _context4.next = 12;
                 break;
@@ -470,7 +384,7 @@ function () {
     /**
      * Sign ETH transaction data.
      *
-     * @param  String from From address
+     * @param  String from The primary address wallet to be used
      * @param  String [to] If omitted then deploying a contract
      * @param  Number value Amount of wei to send
      * @param  String data Data
@@ -487,17 +401,16 @@ function () {
       var _signETHTransaction = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee5(_ref5) {
-        var nonce, from, to, value, data, gasLimit, gasPrice, chainId, _ref6, wallet, tx;
-
+        var nonce, from, to, value, data, gasLimit, gasPrice, chainId, wallet;
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
                 nonce = _ref5.nonce, from = _ref5.from, to = _ref5.to, value = _ref5.value, data = _ref5.data, gasLimit = _ref5.gasLimit, gasPrice = _ref5.gasPrice, chainId = _ref5.chainId;
-                _ref6 = this._children.find(function (_ref7) {
-                  var owner = _ref7.owner;
-                  return from === owner;
-                }) || {}, wallet = _ref6.wallet;
+                wallet = this.wallets.find(function (_ref6) {
+                  var primaryAddress = _ref6.primaryAddress;
+                  return from === primaryAddress;
+                }) || {};
 
                 if (wallet) {
                   _context5.next = 4;
@@ -507,58 +420,52 @@ function () {
                 throw new Error('Invalid from address');
 
               case 4:
+                ;
+
                 if (nonce) {
-                  _context5.next = 8;
+                  _context5.next = 9;
                   break;
                 }
 
-                _context5.next = 7;
+                _context5.next = 8;
                 return this._web3.eth.getTransactionCount(from);
 
-              case 7:
+              case 8:
                 nonce = _context5.sent;
 
-              case 8:
+              case 9:
+                ;
+
                 if (gasPrice) {
-                  _context5.next = 12;
+                  _context5.next = 14;
                   break;
                 }
 
-                _context5.next = 11;
+                _context5.next = 13;
                 return this._web3.eth.getGasPrice();
 
-              case 11:
+              case 13:
                 gasPrice = _context5.sent;
 
-              case 12:
-                if (gasLimit) {
-                  _context5.next = 16;
-                  break;
+              case 14:
+                ;
+
+                if (!gasLimit) {
+                  gasLimit = 6000000;
                 }
 
-                _context5.next = 15;
-                return this._web3.eth.estimateGas({
-                  to: to,
-                  data: data
-                });
-
-              case 15:
-                gasLimit = _context5.sent;
-
-              case 16:
-                tx = new _ethereumjsTx["default"]({
+                ;
+                return _context5.abrupt("return", this._web3.eth.accounts.signTransaction({
                   nonce: nonce,
                   to: to,
                   value: value,
                   data: data,
-                  gasLimit: gasLimit,
+                  gas: gasLimit,
                   gasPrice: gasPrice,
                   chainId: chainId
-                });
-                tx.sign(wallet.getPrivateKey());
-                return _context5.abrupt("return", addHexPrefix(tx.serialize().toString('hex')));
+                }, addHexPrefix(wallet.getPrivateKey().toString('hex'))));
 
-              case 19:
+              case 18:
               case "end":
                 return _context5.stop();
             }
@@ -574,6 +481,16 @@ function () {
     }()
     /**
      * Sign quick transaction from owner address
+     *
+     * @param  String from The secondary address wallet to be used
+     * @param  String to The address of the receiver
+     * @param  String data Transaction data for smart contracts functions
+     * @param  Number value Amount of wei to send
+     * @param  Number feeToken In which token the gas is payed, use form address for ETH
+     * @param  Number feeValue The amount to wei to be payed as fee
+     * @param  Number timeLimit In how much time the tx need to be executed
+     * @param  Number txCount Transaction count to be used
+     *
      * @return Object
      */
 
@@ -582,13 +499,13 @@ function () {
     value: function () {
       var _signQuickTransaction = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee6(_ref8) {
+      regeneratorRuntime.mark(function _callee6(_ref7) {
         var from, to, data, value, feeToken, feeValue, timeLimit, txCount, wallet, walletContract, beforeTime, txData, txSignature;
         return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                from = _ref8.from, to = _ref8.to, data = _ref8.data, value = _ref8.value, feeToken = _ref8.feeToken, feeValue = _ref8.feeValue, timeLimit = _ref8.timeLimit, txCount = _ref8.txCount;
+                from = _ref7.from, to = _ref7.to, data = _ref7.data, value = _ref7.value, feeToken = _ref7.feeToken, feeValue = _ref7.feeValue, timeLimit = _ref7.timeLimit, txCount = _ref7.txCount;
                 _context6.next = 3;
                 return this.getQuickWalletInfo(from);
 
@@ -630,13 +547,13 @@ function () {
                 beforeTime = _context6.t1 + _context6.t2;
                 txData = this._web3.eth.abi.encodeParameters(['address', 'bytes', 'uint256', 'address', 'uint256', 'uint256'], [to, data, value, feeToken, feeValue, beforeTime]);
                 _context6.next = 22;
-                return this.sign(wallet.owner, this._web3.utils.soliditySha3(wallet.address, txData, txCount));
+                return this.sign(wallet.primaryAddress, this._web3.utils.soliditySha3(wallet.secondaryAddress, txData, txCount));
 
               case 22:
                 txSignature = _context6.sent;
                 return _context6.abrupt("return", {
-                  owner: wallet.owner,
-                  from: wallet.address,
+                  primaryAddress: wallet.primaryAddress,
+                  from: wallet.secondaryAddress,
                   txData: txData,
                   txSignature: txSignature
                 });
@@ -656,38 +573,6 @@ function () {
       return signQuickTransaction;
     }()
     /**
-     * Check whether given address is present in current list of generated addresses.
-     *
-     * @param String addr The wallet address to check
-     *
-     * @return Boolean
-     */
-
-  }, {
-    key: "hasAddress",
-    value: function hasAddress(addr) {
-      return !!this._children.find(function (_ref9) {
-        var address = _ref9.address;
-        return addr === address;
-      });
-    }
-    /**
-     * Check whether given address is present in current list of generated addresses.
-     *
-     * @param String addr The owner address to check
-     *
-     * @return Boolean
-     */
-
-  }, {
-    key: "hasOwner",
-    value: function hasOwner(_owner) {
-      return !!this._children.find(function (_ref10) {
-        var owner = _ref10.owner;
-        return _owner === owner;
-      });
-    }
-    /**
      * Sign data.
      *
      * @param String address Address whos private key to sign with
@@ -698,17 +583,17 @@ function () {
 
   }, {
     key: "sign",
-    value: function sign(owner, data) {
-      var _ref11 = this._children.find(function (_ref12) {
-        var a = _ref12.owner;
-        return owner === a;
-      }) || {},
-          wallet = _ref11.wallet;
+    value: function sign(primaryAddr, data) {
+      var wallet = this.wallets.find(function (_ref8) {
+        var primaryAddress = _ref8.primaryAddress;
+        return primaryAddress === primaryAddr;
+      });
 
       if (!wallet) {
         throw new Error('Invalid address');
       }
 
+      ;
       return _ethSigUtil["default"].personalSign(wallet.getPrivateKey(), {
         data: data
       });
@@ -719,17 +604,35 @@ function () {
      * @param String signature The signed message
      * @param String|Buffer|BN data The original input data
      *
-     * @return String Public signing key
+     * @return String Address of the signer
      */
 
   }, {
-    key: "recoverSignerPublicKey",
-    value: function recoverSignerPublicKey(signature, data) {
+    key: "recover",
+    value: function recover(message, signature) {
       return _ethSigUtil["default"].recoverPersonalSignature({
-        sig: signature,
-        data: data
+        data: message,
+        sig: signature
       });
     }
+    /**
+    * Deterministically computes the smart contract address
+    *
+    * @param String deployerAddress The address of the creator contract
+    * @param String saltHex The salt to be used in hex format
+    * @param String byteCode The bytecode of the smart contract to create
+    */
+
+  }, {
+    key: "buildCreate2Address",
+    value: function buildCreate2Address(deployerAddress, saltHex, byteCode) {
+      return this._web3.utils.toChecksumAddress("0x".concat(this._web3.utils.sha3("0x".concat(['ff', deployerAddress, saltHex, this._web3.utils.soliditySha3(byteCode)].map(function (x) {
+        return x.replace(/0x/, '');
+      }).join(''))).slice(-40)));
+    }
+  }, {
+    key: "_deriveNewKeys",
+
     /**
      * Derive new key pairs.
      *
@@ -740,24 +643,18 @@ function () {
      *
      * @return [String] Generated keypairs.
      */
-
-  }, {
-    key: "_deriveNewKeys",
     value: function _deriveNewKeys(num) {
-      for (var i = num; i >= 0; i--) {
-        var child = this._root.deriveChild(this._children.length).getWallet();
+      for (var i = num; i > 0; i--) {
+        var wallet = this._root.deriveChild(this.wallets.length).getWallet();
 
-        var owner = addHexPrefix(child.getAddress().toString('hex'));
-
-        this._children.push({
-          wallet: child,
-          owner: owner,
-          address: this.buildCreate2Address(this._walletFactory.address, this._web3.utils.soliditySha3(owner), _QuickWallet.bytecode + this._web3.eth.abi.encodeParameters(['address'], [owner]).substring(2))
-        });
+        var primaryAddress = addHexPrefix(wallet.getAddress().toString('hex'));
+        wallet.primaryAddress = primaryAddress;
+        wallet.secondaryAddress = this.buildCreate2Address(this._walletFactory.address, this._web3.utils.soliditySha3(primaryAddress), _QuickWallet.bytecode + this._web3.eth.abi.encodeParameters(['address'], [primaryAddress]).substring(2));
+        this.wallets.push(wallet);
       }
 
       ;
-      return this._children.slice(-num);
+      return this.wallets.slice(-num);
     }
   }]);
 
