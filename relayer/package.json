@@ -34,30 +34,30 @@
   },
   "homepage": "https://github.com/augustol/quick-wallet",
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
-    "babel-eslint": "^10.0.1",
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/preset-env": "^7.7.1",
+    "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.5",
     "babel-polyfill": "^6.26.0",
     "babel-register": "^6.26.0",
     "chai": "^4.2.0",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-mocha-no-only": "^1.1.0",
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
-    "ganache-cli": "^6.4.4",
-    "jest": "^24.7.1",
+    "ganache-cli": "^6.7.0",
+    "jest": "^24.9.0",
     "node-fetch": "^2.6.0",
     "npm-watch": "^0.6.0"
   },
   "dependencies": {
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
-    "web3": "^1.0.0-beta.55"
+    "web3": "^1.2.2"
   },
   "jest": {
     "testRegex": "./test/.*.spec.js",

@@ -23,12 +23,12 @@ web3.eth.getAccounts().then( (accounts) => {
   deployContract(QuickWalletFactory, [QuickWallet.bytecode])
     .then((_quickWalletFactory) => {
       quickWalletFactory = _quickWalletFactory;
-      console.log('QuickWallet factory deployed on', quickWalletFactory.address);
+      console.log('QuickWallet factory deployed on', quickWalletFactory._address);
       return deployContract(ERC20Mock, [accounts[0], web3.utils.toWei("2000")])
 
     }).then((ERC20Mock) => {
 
-      console.log('ERC20 Token deployed on', ERC20Mock.address);
+      console.log('ERC20 Token deployed on', ERC20Mock._address);
       token = ERC20Mock;
       return deployContract(UniswapExchange);
 
@@ -39,21 +39,21 @@ web3.eth.getAccounts().then( (accounts) => {
 
     }).then((_uniswapFactory) => {
 
-      console.log('Uniswap Factory deployed on', _uniswapFactory.address);
+      console.log('Uniswap Factory deployed on', _uniswapFactory._address);
       uniswapFactory = _uniswapFactory;
-      return uniswapFactory.methods.initializeFactory(uniswapExchangeTemplate.address)
+      return uniswapFactory.methods.initializeFactory(uniswapExchangeTemplate._address)
         .send({from: accounts[0], gasPrice: 1, gasLimit: 4700000});
 
     }).then((uniswapFactoryInitialized) => {
 
-      return uniswapFactory.methods.createExchange(token.address)
+      return uniswapFactory.methods.createExchange(token._address)
         .send({from: accounts[0], gasPrice: 1, gasLimit: 4700000});
 
     }).then((uniswapExchangeDeployed) => {
 
       uniswapExchange = new web3.eth.Contract(UniswapExchange.abi, uniswapExchangeDeployed.events.NewExchange.returnValues.exchange);
-      console.log('Uniswap Exchange deployed on', uniswapExchange.address);
-      return token.methods.approve(uniswapExchange.address, web3.utils.toWei("1000")).send({from: accounts[0]})
+      console.log('Uniswap Exchange deployed on', uniswapExchange._address);
+      return token.methods.approve(uniswapExchange._address, web3.utils.toWei("1000")).send({from: accounts[0]})
 
     }).then((tokensApproved) => {
 
@@ -66,12 +66,12 @@ web3.eth.getAccounts().then( (accounts) => {
       console.log('Exchange funded');
       fs.writeFileSync(process.env.PWD+'/.config-dev.json',
         JSON.stringify({
-          quickWalletFactory: quickWalletFactory.address,
-          uniswapFactory: uniswapFactory.address,
-          token: token.address,
+          quickWalletFactory: quickWalletFactory._address,
+          uniswapFactory: uniswapFactory._address,
+          token: token._address,
           uniswapExchanges: [{
-            token: token.address,
-            address: uniswapExchange.address
+            token: token._address,
+            address: uniswapExchange._address
           }],
           minimunETHWeiProfit: '100000',
           port: '3000'

@@ -24,9 +24,9 @@ describe('relayer.index', () => {
     const quickWallet = QuickWallet.fromMnemonic(mnemonic, config.quickWalletFactory);
     quickWallet.generateAddresses(1);
     const quickWallets = quickWallet.getQuickWallets();
-    const senderWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
+    const senderWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].secondaryAddress);
 
-    await web3.eth.sendTransaction({ from: tokenOwner, to: senderWallet.address, value: web3.utils.toWei('1') });
+    await web3.eth.sendTransaction({ from: tokenOwner, to: senderWallet.secondaryAddress, value: web3.utils.toWei('1') });
 
     const firstTxData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
@@ -34,11 +34,11 @@ describe('relayer.index', () => {
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, web3.utils.toWei("0.999")]);
     const firstTxSigned = await quickWallet.signQuickTransaction({
-      from: senderWallet.address,
-      to: senderWallet.address,
+      from: senderWallet.secondaryAddress,
+      to: senderWallet.secondaryAddress,
       data: firstTxData,
       value: 0,
-      feeToken: senderWallet.address,
+      feeToken: senderWallet.secondaryAddress,
       feeValue: web3.utils.toWei("0.001"),
       timeLimit: 60,
     });
@@ -51,19 +51,18 @@ describe('relayer.index', () => {
     const response = await postQuickTx.json();
 
     assert(response.tx.transactionHash);
-    assert(await web3.eth.getBalance(senderWallet.address), 0);
+    assert(await web3.eth.getBalance(senderWallet.secondaryAddress), 0);
     assert(await web3.eth.getBalance(otherAccount), web3.utils.toWei("1"));
     assert(await senderWallet.contract.methods.txCount().call(), 1);
-    assert(await senderWallet.contract.methods.owner().call(), web3.utils.toChecksumAddress(senderWallet.owner));
+    assert(await senderWallet.contract.methods.owner().call(), web3.utils.toChecksumAddress(senderWallet.primaryAddress));
   });
 
-  // Skip till https://github.com/trufflesuite/ganache-core/pull/419 is merged
-  it.skip('relay transaction using QuickWallet and pay fee in ERC20', async function () {
+  it('relay transaction using QuickWallet and pay fee in ERC20', async function () {
     const quickWallet = QuickWallet.fromMnemonic(mnemonic, config.quickWalletFactory);
     quickWallet.generateAddresses(1);
     const quickWallets = quickWallet.getQuickWallets();
-    const senderWallet = await quickWallet.getQuickWallet(quickWallets[0].address);
-    await token.methods.transfer(senderWallet.address, web3.utils.toWei("1")).send({ from: tokenOwner, chianId: 1337 });
+    const senderWallet = await quickWallet.getQuickWalletInfo(quickWallets[0].secondaryAddress);
+    await token.methods.transfer(senderWallet.secondaryAddress, web3.utils.toWei("1")).send({ from: tokenOwner, chianId: 1337 });
 
     const firstTxData = web3.eth.abi.encodeFunctionCall({
       name: 'transfer',
@@ -71,11 +70,11 @@ describe('relayer.index', () => {
       inputs: [{ type: 'address', name: 'to' }, { type: 'uint256', name: 'value' }],
     }, [otherAccount, web3.utils.toWei("0.999")]);
     const firstTxSigned = await quickWallet.signQuickTransaction({
-      from: senderWallet.address,
-      to: token.address,
+      from: senderWallet.secondaryAddress,
+      to: token._address,
       data: firstTxData,
       value: 0,
-      feeToken: token.address,
+      feeToken: token._address,
       feeValue: web3.utils.toWei("0.001"),
       timeLimit: 60,
     });
@@ -88,9 +87,9 @@ describe('relayer.index', () => {
     const response = await postQuickTx.json();
 
     assert(response.tx.transactionHash);
-    assert(await token.methods.balanceOf(senderWallet.address).call(), web3.utils.toWei("0"));
+    assert(await token.methods.balanceOf(senderWallet.secondaryAddress).call(), web3.utils.toWei("0"));
     assert(await token.methods.balanceOf(otherAccount).call(), web3.utils.toWei("0.999"));
     assert(await senderWallet.contract.methods.txCount().call(), 1);
-    assert(await senderWallet.contract.methods.owner().call(), web3.utils.toChecksumAddress(senderWallet.owner));
+    assert(await senderWallet.contract.methods.owner().call(), web3.utils.toChecksumAddress(senderWallet.primaryAddress));
   });
 });

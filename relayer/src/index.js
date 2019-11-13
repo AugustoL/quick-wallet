@@ -26,7 +26,7 @@ const web3 = new Web3(web3Provider, undefined, { transactionConfirmationBlocks: 
 const quickWallet = QuickWallet.default.fromMnemonic(mnemonic , config.quickWalletFactory);
 quickWallet.generateAddresses(2);
 const quickWallets = quickWallet.getQuickWallets();
-const relayerWallet = quickWallets[1].owner;
+const relayerWallet = quickWallets[1].primaryAddress;
 
 console.log('Config', config);
 console.log('Web3 Provider', web3Provider);
@@ -60,7 +60,7 @@ const calculateProfit = async function(weiCost, from, txData) {
 };
 
 app.get('/', asyncHandler(async (req, res, next) => {
-    res.json(config);
+  res.json(config);
 }));
 
 app.get('/exchange/:address', asyncHandler(async (req, res, next) => {
