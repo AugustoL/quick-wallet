@@ -55,7 +55,7 @@
     "npm-watch": "^0.6.0"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-async-handler": "^1.1.4",
     "web3": "^1.2.2"
   },
